@@ -1,27 +1,26 @@
 import pool from "../config/db.js";
-import { hashPassword } from "../utils/hash.js";
+import { hashPassword, comparePassword } from "../utils/hash.js";
+import { AUTH_MESSAGES } from "../constants/messages.js";
 
 export const registerUser = async (userData) => {
     const { email, password, role, full_name, username } = userData;
 
-    // Check if email already exists
     const existingUser = await pool.query(
         "SELECT id FROM users WHERE email = $1",
         [email]
     );
 
     if (existingUser.rows.length > 0) {
-        throw new Error("Email already exists");
+        throw new Error(AUTH_MESSAGES.EMAIL_ALREADY_EXISTS);
     }
 
-    // Check if username already exists
     const existingUsername = await pool.query(
         "SELECT id FROM profiles WHERE username = $1",
         [username]
     );
 
     if (existingUsername.rows.length > 0) {
-        throw new Error("Username already exists");
+        throw new Error(AUTH_MESSAGES.USERNAME_ALREADY_EXISTS);
     }
 
     const hashedPassword = await hashPassword(password);
@@ -61,3 +60,33 @@ export const registerUser = async (userData) => {
     }
 };
 
+export const loginUser = async ({ email, password }) => {
+
+    const result = await pool.query(
+        `
+        SELECT id, email, password, role
+        FROM users
+        WHERE email = $1
+        `,
+        [email]
+    );
+
+    if (result.rows.length === 0) {
+        throw new Error(AUTH_MESSAGES.INVALID_CREDENTIALS);
+    }
+
+    const user = result.rows[0];
+
+    const isPasswordValid = await comparePassword(
+        password,
+        user.password
+    );
+
+    if (!isPasswordValid) {
+        throw new Error(AUTH_MESSAGES.INVALID_CREDENTIALS);
+    }
+
+    delete user.password;
+
+    return user;
+};
