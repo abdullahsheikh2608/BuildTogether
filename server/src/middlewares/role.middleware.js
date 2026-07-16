@@ -1,6 +1,4 @@
-const FORBIDDEN_MESSAGE =
-    "You are not authorized to perform this action";
-
+import { AUTH_MESSAGES } from "../constants/messages.js";
 export const authorizeRole = (...roles) => {
 
     return (req, res, next) => {

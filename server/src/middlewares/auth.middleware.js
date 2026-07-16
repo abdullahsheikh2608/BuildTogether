@@ -1,9 +1,6 @@
 import jwt from "jsonwebtoken";
 import { AUTH_MESSAGES } from "../constants/messages.js";
 
-const TOKEN_REQUIRED_MESSAGE = "Access token is required";
-const INVALID_TOKEN_MESSAGE = "Invalid or expired token";
-
 export const authenticate = (req, res, next) => {
 
     const authHeader = req.headers.authorization;
