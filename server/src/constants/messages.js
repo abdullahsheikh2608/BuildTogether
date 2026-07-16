@@ -23,3 +23,38 @@ export const AUTH_MESSAGES = {
     // Authorization Messages
     FORBIDDEN: "You are not authorized to perform this action",
 };
+export const STARTUP_MESSAGES = {
+    CREATED_SUCCESSFULLY: "Startup created successfully",
+
+    TITLE_REQUIRED: "Startup title is required",
+    TAGLINE_REQUIRED: "Startup tagline is required",
+    DESCRIPTION_REQUIRED: "Startup description is required",
+
+    TECH_STACK_REQUIRED: "Tech stack is required",
+    REQUIRED_ROLES_REQUIRED: "Required roles are required",
+
+    STATUS_REQUIRED: "Startup status is required",
+
+    INVALID_STATUS: "Invalid startup status",
+
+    TITLE_LENGTH:
+        "Title must be between 3 and 100 characters",
+
+    TAGLINE_LENGTH:
+        "Tagline must be between 3 and 150 characters",
+
+    DESCRIPTION_LENGTH:
+        "Description must be between 10 and 5000 characters",
+
+    TECH_STACK_ARRAY:
+        "Tech stack must be an array",
+
+    REQUIRED_ROLES_ARRAY:
+        "Required roles must be an array",
+
+    TECH_STACK_EMPTY:
+        "Tech stack must contain at least one item",
+
+    REQUIRED_ROLES_EMPTY:
+        "Required roles must contain at least one item",
+};
