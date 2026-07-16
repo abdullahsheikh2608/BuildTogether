@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import routes from "./routes/index.js";
 import errorHandler from "./middlewares/error.middleware.js";
+import startupRoutes from "./routes/startup.routes.js";
 
 const app = express();
 
@@ -32,4 +33,5 @@ app.use((req, res) => {
 });
 
 app.use(errorHandler);
+app.use("/api/v1/startups", startupRoutes);
 export default app;
