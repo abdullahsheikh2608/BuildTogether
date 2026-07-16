@@ -57,4 +57,7 @@ export const STARTUP_MESSAGES = {
 
     REQUIRED_ROLES_EMPTY:
         "Required roles must contain at least one item",
+
+    FETCH_SUCCESSFULLY: "Startups fetched successfully",
+        NO_STARTUPS_FOUND: "No startups found",
 };

@@ -49,3 +49,23 @@ export const createStartup = async (startupData, founderId) => {
 
     return result.rows[0];
 };
+
+export const getAllStartups = async () => {
+    const result = await pool.query(`
+        SELECT
+            id,
+            founder_id,
+            title,
+            tagline,
+            description,
+            tech_stack,
+            required_roles,
+            status,
+            created_at,
+            updated_at
+        FROM startups
+        ORDER BY created_at DESC
+    `);
+
+    return result.rows;
+};
