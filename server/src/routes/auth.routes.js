@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { register, login } from "../controllers/auth.controller.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
 import {
     validateRegister,
     validateLogin,
@@ -9,5 +10,13 @@ const router = Router();
 
 router.post("/register", validateRegister, register);
 router.post("/login", validateLogin, login);
+router.get("/me", authenticate, (req, res) => {
+
+    return res.status(200).json({
+        success: true,
+        data: req.user,
+    });
+
+});
 
 export default router;

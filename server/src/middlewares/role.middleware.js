@@ -1,12 +1,19 @@
-export const authorize = (...roles) => {
+import { AUTH_MESSAGES } from "../constants/messages.js";
+export const authorizeRole = (...roles) => {
+
     return (req, res, next) => {
+
         if (!roles.includes(req.user.role)) {
+
             return res.status(403).json({
                 success: false,
-                message: "You are not authorized to access this resource.",
+                message: FORBIDDEN_MESSAGE,
             });
+
         }
 
         next();
+
     };
+
 };
