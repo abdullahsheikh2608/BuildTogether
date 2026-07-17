@@ -97,3 +97,60 @@ export const getStartupById = async (startupId) => {
 
     return result.rows[0];
 };
+export const updateStartup = async (startupId, founderId, startupData) => {
+    console.log("Startup ID:", startupId);
+
+    const existingStartup = await pool.query(
+        `
+        SELECT founder_id
+        FROM startups
+        WHERE id = $1
+        `,
+        [startupId]
+    );
+    console.log(existingStartup.rows);
+
+    if (existingStartup.rows.length === 0) {
+        return null;
+    }
+
+    if (existingStartup.rows[0].founder_id !== founderId) {
+        return "FORBIDDEN";
+    }
+
+    const fields = [];
+    const values = [];
+    let index = 1;
+
+    for (const [key, value] of Object.entries(startupData)) {
+        fields.push(`${key} = $${index}`);
+        values.push(value);
+        index++;
+    }
+
+    values.push(startupId);
+
+    const result = await pool.query(
+        `
+        UPDATE startups
+        SET
+            ${fields.join(", ")},
+            updated_at = NOW()
+        WHERE id = $${index}
+        RETURNING
+            id,
+            founder_id,
+            title,
+            tagline,
+            description,
+            tech_stack,
+            required_roles,
+            status,
+            created_at,
+            updated_at
+        `,
+        values
+    );
+
+    return result.rows[0];
+};

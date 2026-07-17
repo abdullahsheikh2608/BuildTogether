@@ -123,6 +123,7 @@ export const validateCreateStartup = (req, res, next) => {
 
     next();
 };
+
 export const validateStartupId = (req, res, next) => {
 
     const { id } = req.params;
@@ -131,6 +132,118 @@ export const validateStartupId = (req, res, next) => {
         return res.status(400).json({
             success: false,
             message: STARTUP_MESSAGES.INVALID_STARTUP_ID,
+        });
+    }
+
+    next();
+};
+
+export const validateUpdateStartup = (req, res, next) => {
+
+    const {
+        title,
+        tagline,
+        description,
+        tech_stack,
+        required_roles,
+        status,
+    } = req.body;
+
+    // At least one field should be provided
+    if (
+        title === undefined &&
+        tagline === undefined &&
+        description === undefined &&
+        tech_stack === undefined &&
+        required_roles === undefined &&
+        status === undefined
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: STARTUP_MESSAGES.NOTHING_TO_UPDATE,
+        });
+    }
+
+    if (
+        title !== undefined &&
+        !validator.isLength(title, {
+            min: STARTUP_LIMITS.TITLE_MIN,
+            max: STARTUP_LIMITS.TITLE_MAX,
+        })
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: STARTUP_MESSAGES.TITLE_LENGTH,
+        });
+    }
+
+    if (
+        tagline !== undefined &&
+        !validator.isLength(tagline, {
+            min: STARTUP_LIMITS.TAGLINE_MIN,
+            max: STARTUP_LIMITS.TAGLINE_MAX,
+        })
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: STARTUP_MESSAGES.TAGLINE_LENGTH,
+        });
+    }
+
+    if (
+        description !== undefined &&
+        !validator.isLength(description, {
+            min: STARTUP_LIMITS.DESCRIPTION_MIN,
+            max: STARTUP_LIMITS.DESCRIPTION_MAX,
+        })
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: STARTUP_MESSAGES.DESCRIPTION_LENGTH,
+        });
+    }
+
+    if (tech_stack !== undefined) {
+
+        if (!Array.isArray(tech_stack)) {
+            return res.status(400).json({
+                success: false,
+                message: STARTUP_MESSAGES.TECH_STACK_ARRAY,
+            });
+        }
+
+        if (tech_stack.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: STARTUP_MESSAGES.TECH_STACK_EMPTY,
+            });
+        }
+    }
+
+    if (required_roles !== undefined) {
+
+        if (!Array.isArray(required_roles)) {
+            return res.status(400).json({
+                success: false,
+                message: STARTUP_MESSAGES.REQUIRED_ROLES_ARRAY,
+            });
+        }
+
+        if (required_roles.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: STARTUP_MESSAGES.REQUIRED_ROLES_EMPTY,
+            });
+        }
+    }
+
+    if (
+        status !== undefined &&
+        !Object.values(STARTUP_STATUS).includes(status)
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: STARTUP_MESSAGES.INVALID_STATUS,
         });
     }
 
