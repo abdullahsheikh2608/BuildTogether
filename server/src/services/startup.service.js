@@ -97,8 +97,8 @@ export const getStartupById = async (startupId) => {
 
     return result.rows[0];
 };
+
 export const updateStartup = async (startupId, founderId, startupData) => {
-    console.log("Startup ID:", startupId);
 
     const existingStartup = await pool.query(
         `
@@ -108,7 +108,6 @@ export const updateStartup = async (startupId, founderId, startupData) => {
         `,
         [startupId]
     );
-    console.log(existingStartup.rows);
 
     if (existingStartup.rows.length === 0) {
         return null;
@@ -153,4 +152,34 @@ export const updateStartup = async (startupId, founderId, startupData) => {
     );
 
     return result.rows[0];
+};
+
+export const deleteStartup = async (startupId, founderId) => {
+
+    const existingStartup = await pool.query(
+        `
+        SELECT founder_id
+        FROM startups
+        WHERE id = $1
+        `,
+        [startupId]
+    );
+
+    if (existingStartup.rows.length === 0) {
+        return null;
+    }
+
+    if (existingStartup.rows[0].founder_id !== founderId) {
+        return "FORBIDDEN";
+    }
+
+    await pool.query(
+        `
+        DELETE FROM startups
+        WHERE id = $1
+        `,
+        [startupId]
+    );
+
+    return true;
 };
