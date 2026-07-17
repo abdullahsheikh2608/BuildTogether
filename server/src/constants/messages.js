@@ -77,3 +77,29 @@ export const STARTUP_MESSAGES = {
 export const COMMON_MESSAGES = {
     ROUTE_NOT_FOUND: "Route Not Found",
 };
+
+export const APPLICATION_MESSAGES = {
+    STARTUP_ID_REQUIRED: "Startup id is required",
+    INVALID_STARTUP_ID: "Invalid startup id",
+
+    MESSAGE_TOO_LONG: "Message must not exceed 1000 characters",
+
+    ALREADY_APPLIED: "You have already applied to this startup",
+
+    STARTUP_NOT_FOUND: "Startup not found",
+
+    APPLICATION_SUBMITTED: "Application submitted successfully",
+
+    FETCH_SUCCESSFULLY: "Applications fetched successfully",
+
+    APPLICATION_NOT_FOUND: "Application not found",
+
+    STATUS_REQUIRED: "Status is required",
+
+    INVALID_STATUS: "Invalid application status",
+
+    UPDATED_SUCCESSFULLY: "Application updated successfully",
+
+    INVALID_APPLICATION_ID: "Invalid application id",
+
+};
