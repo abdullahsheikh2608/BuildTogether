@@ -1,5 +1,6 @@
 import {
     createApplication as createApplicationService,
+    getMyApplications as getMyApplicationsService,
 } from "../services/application.service.js";
 
 import {
@@ -32,6 +33,22 @@ export const createApplication = async (req, res, next) => {
             success: true,
             message: APPLICATION_MESSAGES.APPLICATION_SUBMITTED,
             data: application,
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getMyApplications = async (req, res, next) => {
+    try {
+
+        const applications = await getMyApplicationsService(req.user.id);
+
+        return res.status(200).json({
+            success: true,
+            message: APPLICATION_MESSAGES.FETCH_SUCCESSFULLY,
+            data: applications,
         });
 
     } catch (error) {
