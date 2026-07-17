@@ -28,10 +28,9 @@ app.use("/api/v1", routes);
 app.use((req, res) => {
     res.status(404).json({
         success: false,
-        message: "Route Not Found"
+        message: "Route Not Found",
     });
 });
 
 app.use(errorHandler);
-app.use("/api/v1/startups", startupRoutes);
 export default app;

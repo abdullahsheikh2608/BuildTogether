@@ -69,3 +69,31 @@ export const getAllStartups = async () => {
 
     return result.rows;
 };
+
+export const getStartupById = async (startupId) => {
+
+    const result = await pool.query(
+        `
+        SELECT
+            id,
+            founder_id,
+            title,
+            tagline,
+            description,
+            tech_stack,
+            required_roles,
+            status,
+            created_at,
+            updated_at
+        FROM startups
+        WHERE id = $1
+        `,
+        [startupId]
+    );
+
+    if (result.rows.length === 0) {
+        return null;
+    }
+
+    return result.rows[0];
+};
