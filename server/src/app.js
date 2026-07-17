@@ -5,6 +5,7 @@ import morgan from "morgan";
 import routes from "./routes/index.js";
 import errorHandler from "./middlewares/error.middleware.js";
 import startupRoutes from "./routes/startup.routes.js";
+import { COMMON_MESSAGES } from "./constants/messages.js";
 
 const app = express();
 
@@ -28,7 +29,7 @@ app.use("/api/v1", routes);
 app.use((req, res) => {
     res.status(404).json({
         success: false,
-        message: "Route Not Found",
+        message: COMMON_MESSAGES.ROUTE_NOT_FOUND,
     });
 });
 
