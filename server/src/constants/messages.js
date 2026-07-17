@@ -60,4 +60,13 @@ export const STARTUP_MESSAGES = {
 
     FETCH_SUCCESSFULLY: "Startups fetched successfully",
         NO_STARTUPS_FOUND: "No startups found",
+
+    INVALID_STARTUP_ID: "Invalid startup id",
+
+    FETCH_BY_ID_SUCCESSFULLY: "Startup fetched successfully",
+        STARTUP_NOT_FOUND: "Startup not found",
+};
+
+export const COMMON_MESSAGES = {
+    ROUTE_NOT_FOUND: "Route Not Found",
 };

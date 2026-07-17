@@ -123,3 +123,16 @@ export const validateCreateStartup = (req, res, next) => {
 
     next();
 };
+export const validateStartupId = (req, res, next) => {
+
+    const { id } = req.params;
+
+    if (!validator.isUUID(id, 4)) {
+        return res.status(400).json({
+            success: false,
+            message: STARTUP_MESSAGES.INVALID_STARTUP_ID,
+        });
+    }
+
+    next();
+};
