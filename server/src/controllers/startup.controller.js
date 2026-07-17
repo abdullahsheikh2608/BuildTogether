@@ -3,6 +3,7 @@ import {
     getAllStartups as getAllStartupsService,
     getStartupById as getStartupByIdService,
     updateStartup as updateStartupService,
+    deleteStartup as deleteStartupService,
 } from "../services/startup.service.js";
 
 import { STARTUP_MESSAGES } from "../constants/messages.js";
@@ -58,6 +59,7 @@ export const getStartupById = async (req, res, next) => {
         next(error);
     }
 };
+
 export const updateStartup = async (req, res, next) => {
     try {
 
@@ -87,6 +89,40 @@ export const updateStartup = async (req, res, next) => {
             success: true,
             message: STARTUP_MESSAGES.UPDATED_SUCCESSFULLY,
             data: updatedStartup,
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteStartup = async (req, res, next) => {
+    try {
+
+        const { id } = req.params;
+
+        const deletedStartup = await deleteStartupService(
+            id,
+            req.user.id
+        );
+
+        if (deletedStartup === null) {
+            return res.status(404).json({
+                success: false,
+                message: STARTUP_MESSAGES.STARTUP_NOT_FOUND,
+            });
+        }
+
+        if (deletedStartup === "FORBIDDEN") {
+            return res.status(403).json({
+                success: false,
+                message: STARTUP_MESSAGES.DELETE_NOT_ALLOWED,
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: STARTUP_MESSAGES.DELETED_SUCCESSFULLY,
         });
 
     } catch (error) {

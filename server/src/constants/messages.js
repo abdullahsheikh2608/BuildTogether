@@ -69,6 +69,9 @@ export const STARTUP_MESSAGES = {
     UPDATED_SUCCESSFULLY: "Startup updated successfully",
     UPDATE_NOT_ALLOWED: "You are not allowed to update this startup",
     NOTHING_TO_UPDATE: "No fields provided to update",
+
+    DELETED_SUCCESSFULLY: "Startup deleted successfully",
+    DELETE_NOT_ALLOWED: "You are not allowed to delete this startup",
 };
 
 export const COMMON_MESSAGES = {
