@@ -65,6 +65,10 @@ export const STARTUP_MESSAGES = {
 
     FETCH_BY_ID_SUCCESSFULLY: "Startup fetched successfully",
         STARTUP_NOT_FOUND: "Startup not found",
+
+    UPDATED_SUCCESSFULLY: "Startup updated successfully",
+    UPDATE_NOT_ALLOWED: "You are not allowed to update this startup",
+    NOTHING_TO_UPDATE: "No fields provided to update",
 };
 
 export const COMMON_MESSAGES = {

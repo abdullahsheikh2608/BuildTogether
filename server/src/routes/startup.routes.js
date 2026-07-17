@@ -4,23 +4,28 @@ import {
     createStartup,
     getAllStartups,
     getStartupById,
+    updateStartup,
 } from "../controllers/startup.controller.js";
 
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorizeRole } from "../middlewares/role.middleware.js";
 
 import {
-     validateCreateStartup ,
-     validateStartupId ,
-    } from "../validators/startup.validator.js";
+    validateCreateStartup,
+    validateStartupId,
+    validateUpdateStartup,
+} from "../validators/startup.validator.js";
 
 const router = Router();
-
 // Get all startups
 router.get("/", getAllStartups);
 
 // Get startup by id
-router.get("/:id", validateStartupId, getStartupById);
+router.get(
+    "/:id",
+    validateStartupId,
+    getStartupById
+);
 
 // Create startup (Founder only)
 router.post(
@@ -29,6 +34,16 @@ router.post(
     authorizeRole("founder"),
     validateCreateStartup,
     createStartup
+);
+
+// Update startup (Founder only)
+router.patch(
+    "/:id",
+    authenticate,
+    authorizeRole("founder"),
+    validateStartupId,
+    validateUpdateStartup,
+    updateStartup
 );
 
 export default router;
