@@ -88,7 +88,7 @@ export const getMyApplications = async (developerId) => {
 
         FROM applications a
 
-        INNER JOIN startups s
+        LEFT JOIN startups s
         ON a.startup_id = s.id
 
         WHERE a.developer_id = $1
@@ -141,10 +141,10 @@ export const getStartupApplications = async (
 
         FROM applications a
 
-        INNER JOIN users u
+        LEFT JOIN users u
         ON a.developer_id = u.id
 
-        INNER JOIN profiles p
+        LEFT JOIN profiles p
         ON p.user_id = u.id
 
         WHERE a.startup_id = $1
@@ -172,7 +172,7 @@ export const updateApplicationStatus = async (
 
         FROM applications a
 
-        INNER JOIN startups s
+        LEFT JOIN startups s
         ON a.startup_id = s.id
 
         WHERE a.id = $1
