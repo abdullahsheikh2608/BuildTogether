@@ -156,3 +156,65 @@ export const getStartupApplications = async (
 
     return result.rows;
 };
+export const updateApplicationStatus = async (
+    applicationId,
+    founderId,
+    status
+) => {
+
+    // Find application + startup owner
+    const application = await pool.query(
+        `
+        SELECT
+            a.id,
+            a.status,
+            s.founder_id
+
+        FROM applications a
+
+        INNER JOIN startups s
+        ON a.startup_id = s.id
+
+        WHERE a.id = $1
+        `,
+        [applicationId]
+    );
+
+    if (application.rows.length === 0) {
+        return "APPLICATION_NOT_FOUND";
+    }
+
+    // Check ownership
+    if (application.rows[0].founder_id !== founderId) {
+        return "FORBIDDEN";
+    }
+
+    // Already accepted/rejected
+    if (application.rows[0].status !== "pending") {
+        return "ALREADY_UPDATED";
+    }
+
+    // Update
+    const result = await pool.query(
+        `
+        UPDATE applications
+        SET status = $1
+
+        WHERE id = $2
+
+        RETURNING
+            id,
+            startup_id,
+            developer_id,
+            status,
+            applied_at,
+            message
+        `,
+        [
+            status,
+            applicationId,
+        ]
+    );
+
+    return result.rows[0];
+};

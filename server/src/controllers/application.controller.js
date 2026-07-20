@@ -2,6 +2,7 @@ import {
     createApplication as createApplicationService,
     getMyApplications as getMyApplicationsService,
     getStartupApplications as getStartupApplicationsService,
+    updateApplicationStatus as updateApplicationStatusService,
 } from "../services/application.service.js";
 
 import {
@@ -88,6 +89,49 @@ export const getStartupApplications = async (req, res, next) => {
             success: true,
             message: APPLICATION_MESSAGES.FETCH_SUCCESSFULLY,
             data: applications,
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+export const updateApplicationStatus = async (req, res, next) => {
+    try {
+
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const application = await updateApplicationStatusService(
+            id,
+            req.user.id,
+            status
+        );
+
+        if (application === "APPLICATION_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: APPLICATION_MESSAGES.APPLICATION_NOT_FOUND,
+            });
+        }
+
+        if (application === "FORBIDDEN") {
+            return res.status(403).json({
+                success: false,
+                message: APPLICATION_MESSAGES.FORBIDDEN_STARTUP_ACCESS,
+            });
+        }
+
+        if (application === "ALREADY_UPDATED") {
+            return res.status(409).json({
+                success: false,
+                message: APPLICATION_MESSAGES.ALREADY_UPDATED,
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: APPLICATION_MESSAGES.UPDATED_SUCCESSFULLY,
+            data: application,
         });
 
     } catch (error) {

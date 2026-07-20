@@ -4,6 +4,7 @@ import {
     createApplication,
     getMyApplications,
     getStartupApplications,
+    updateApplicationStatus,
 } from "../controllers/application.controller.js";
 
 import {
@@ -17,6 +18,8 @@ import {
 import {
     validateCreateApplication,
     validateStartupId,
+    validateUpdateApplication,
+    validateApplicationId,
 } from "../validators/application.validator.js";
 
 const router = Router();
@@ -47,4 +50,13 @@ router.post(
     createApplication
 );
 
+// Update Application Status (Founder only)
+router.patch(
+    "/:id",
+    authenticate,
+    authorizeRole("founder"),
+    validateApplicationId,
+    validateUpdateApplication,
+    updateApplicationStatus
+);
 export default router;

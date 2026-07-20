@@ -105,4 +105,6 @@ export const APPLICATION_MESSAGES = {
     NO_APPLICATIONS_FOUND: "No applications found for this startup",
     FORBIDDEN_STARTUP_ACCESS: "You are not allowed to view applications for this startup",
 
+    ALREADY_UPDATED: "Application has already been updated",
+
 };
