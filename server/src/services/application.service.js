@@ -71,3 +71,32 @@ export const createApplication = async (applicationData, developerId) => {
 
     return result.rows[0];
 };
+
+export const getMyApplications = async (developerId) => {
+
+    const result = await pool.query(
+        `
+        SELECT
+            a.id,
+            a.status,
+            a.applied_at,
+            a.message,
+
+            s.id AS startup_id,
+            s.title,
+            s.tagline
+
+        FROM applications a
+
+        INNER JOIN startups s
+        ON a.startup_id = s.id
+
+        WHERE a.developer_id = $1
+
+        ORDER BY a.applied_at DESC
+        `,
+        [developerId]
+    );
+
+    return result.rows;
+};
