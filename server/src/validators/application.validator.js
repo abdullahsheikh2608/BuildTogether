@@ -86,7 +86,7 @@ export const validateStartupId = (req, res, next) => {
 
     const { startupId } = req.params;
 
-    if (!validator.isUUID(startupId, 4)) {
+    if (!validator.isUUID(startupId)) {
         return res.status(400).json({
             success: false,
             message: APPLICATION_MESSAGES.INVALID_STARTUP_ID,
