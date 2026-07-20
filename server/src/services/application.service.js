@@ -100,3 +100,59 @@ export const getMyApplications = async (developerId) => {
 
     return result.rows;
 };
+export const getStartupApplications = async (
+    startupId,
+    founderId
+) => {
+
+    // Check startup exists
+    const startup = await pool.query(
+        `
+        SELECT founder_id
+        FROM startups
+        WHERE id = $1
+        `,
+        [startupId]
+    );
+
+    if (startup.rows.length === 0) {
+        return "STARTUP_NOT_FOUND";
+    }
+
+    // Check ownership
+    if (startup.rows[0].founder_id !== founderId) {
+        return "FORBIDDEN";
+    }
+
+    // Fetch applications
+    const result = await pool.query(
+        `
+        SELECT
+            a.id,
+            a.status,
+            a.message,
+            a.applied_at,
+
+            u.id AS developer_id,
+            u.email,
+
+            p.full_name,
+            p.username
+
+        FROM applications a
+
+        INNER JOIN users u
+        ON a.developer_id = u.id
+
+        INNER JOIN profiles p
+        ON p.user_id = u.id
+
+        WHERE a.startup_id = $1
+
+        ORDER BY a.applied_at DESC
+        `,
+        [startupId]
+    );
+
+    return result.rows;
+};

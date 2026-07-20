@@ -102,4 +102,7 @@ export const APPLICATION_MESSAGES = {
 
     INVALID_APPLICATION_ID: "Invalid application id",
 
+    NO_APPLICATIONS_FOUND: "No applications found for this startup",
+    FORBIDDEN_STARTUP_ACCESS: "You are not allowed to view applications for this startup",
+
 };

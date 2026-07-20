@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
     createApplication,
     getMyApplications,
+    getStartupApplications,
 } from "../controllers/application.controller.js";
 
 import {
@@ -15,6 +16,7 @@ import {
 
 import {
     validateCreateApplication,
+    validateStartupId,
 } from "../validators/application.validator.js";
 
 const router = Router();
@@ -25,6 +27,15 @@ router.get(
     authenticate,
     authorizeRole("developer"),
     getMyApplications
+);
+
+// Get Applications of a Startup
+router.get(
+    "/startup/:startupId",
+    authenticate,
+    authorizeRole("founder"),
+    validateStartupId,
+    getStartupApplications
 );
 
 // Apply to Startup (Developer only)

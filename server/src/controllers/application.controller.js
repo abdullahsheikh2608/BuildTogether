@@ -1,6 +1,7 @@
 import {
     createApplication as createApplicationService,
     getMyApplications as getMyApplicationsService,
+    getStartupApplications as getStartupApplicationsService,
 } from "../services/application.service.js";
 
 import {
@@ -48,6 +49,47 @@ export const getMyApplications = async (req, res, next) => {
             message: APPLICATION_MESSAGES.FETCH_SUCCESSFULLY,
             data: applications,
         });
+    } catch (error) {
+        next(error);
+    }
+};
+export const getStartupApplications = async (req, res, next) => {
+    try {
+
+        const { startupId } = req.params;
+
+        const applications = await getStartupApplicationsService(
+            startupId,
+            req.user.id
+        );
+
+        if (applications === "STARTUP_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: APPLICATION_MESSAGES.STARTUP_NOT_FOUND,
+            });
+        }
+
+        if (applications === "FORBIDDEN") {
+            return res.status(403).json({
+                success: false,
+                message: APPLICATION_MESSAGES.FORBIDDEN_STARTUP_ACCESS,
+            });
+        }
+
+        if (applications.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: APPLICATION_MESSAGES.NO_APPLICATIONS_FOUND,
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: APPLICATION_MESSAGES.FETCH_SUCCESSFULLY,
+            data: applications,
+        });
+
     } catch (error) {
         next(error);
     }
