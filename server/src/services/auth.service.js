@@ -51,7 +51,17 @@ export const registerUser = async (userData) => {
 
         await client.query("COMMIT");
 
-        return user;
+        const userWithProfile = await pool.query(
+            `
+            SELECT u.id, u.email, u.role, p.full_name, p.username
+            FROM users u
+            LEFT JOIN profiles p ON p.user_id = u.id
+            WHERE u.id = $1
+            `,
+            [user.id]
+        );
+
+        return userWithProfile.rows[0];
     } catch (error) {
         await client.query("ROLLBACK");
         throw error;
@@ -61,12 +71,12 @@ export const registerUser = async (userData) => {
 };
 
 export const loginUser = async ({ email, password }) => {
-
     const result = await pool.query(
         `
-        SELECT id, email, password, role
-        FROM users
-        WHERE email = $1
+        SELECT u.id, u.email, u.password, u.role, p.full_name, p.username
+        FROM users u
+        LEFT JOIN profiles p ON p.user_id = u.id
+        WHERE u.email = $1
         `,
         [email]
     );

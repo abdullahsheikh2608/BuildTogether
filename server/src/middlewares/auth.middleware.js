@@ -8,7 +8,7 @@ export const authenticate = (req, res, next) => {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({
             success: false,
-            message: TOKEN_REQUIRED_MESSAGE,
+            message: AUTH_MESSAGES.TOKEN_REQUIRED,
         });
     }
 
@@ -33,7 +33,7 @@ next();
 
         return res.status(401).json({
             success: false,
-            message: INVALID_TOKEN_MESSAGE,
+            message: AUTH_MESSAGES.INVALID_TOKEN,
         });
 
     }
