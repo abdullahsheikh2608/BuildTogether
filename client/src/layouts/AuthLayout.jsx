@@ -25,8 +25,8 @@ export default function AuthLayout({ eyebrow, title, subtitle, children }) {
               Developers build it.
             </h1>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-paper-dim">
-              One blueprint, two crews. Post a startup, review applications,
-              or find the build you want to join.
+              One blueprint, two crews. Post a startup, review applications, or find the build you
+              want to join.
             </p>
           </div>
 
@@ -51,12 +51,8 @@ export default function AuthLayout({ eyebrow, title, subtitle, children }) {
           <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan">
             {eyebrow}
           </span>
-          <h2 className="mt-2 font-display text-2xl font-semibold text-paper">
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="mt-1.5 text-sm text-paper-dim">{subtitle}</p>
-          )}
+          <h2 className="mt-2 font-display text-2xl font-semibold text-paper">{title}</h2>
+          {subtitle && <p className="mt-1.5 text-sm text-paper-dim">{subtitle}</p>}
 
           <div className="mt-8">{children}</div>
         </div>

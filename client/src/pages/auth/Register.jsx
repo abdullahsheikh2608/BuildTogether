@@ -1,17 +1,17 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import AuthLayout from "../../layouts/AuthLayout.jsx";
-import Input from "../../components/ui/Input.jsx";
-import Button from "../../components/ui/Button.jsx";
-import RoleOption from "../../components/ui/RoleOption.jsx";
-import { useAuth } from "../../hooks/useAuth.js";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import AuthLayout from '../../layouts/AuthLayout.jsx';
+import Input from '../../components/ui/Input.jsx';
+import Button from '../../components/ui/Button.jsx';
+import RoleOption from '../../components/ui/RoleOption.jsx';
+import { useAuth } from '../../hooks/useAuth.js';
 
 const INITIAL_FORM = {
-  role: "founder",
-  full_name: "",
-  username: "",
-  email: "",
-  password: "",
+  role: 'founder',
+  full_name: '',
+  username: '',
+  email: '',
+  password: '',
 };
 
 export default function Register() {
@@ -19,28 +19,27 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState(INITIAL_FORM);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (form.password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError('Password must be at least 8 characters.');
       return;
     }
 
     setSubmitting(true);
     try {
       const user = await register(form);
-      const HOME_BY_ROLE = { founder: "/founder", developer: "/dashboard" };
-      navigate(HOME_BY_ROLE[user.role] ?? "/dashboard", { replace: true });
+      const HOME_BY_ROLE = { founder: '/founder', developer: '/dashboard' };
+      navigate(HOME_BY_ROLE[user.role] ?? '/dashboard', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message ?? "Something went wrong. Try again.");
+      setError(err.response?.data?.message ?? 'Something went wrong. Try again.');
     } finally {
       setSubmitting(false);
     }
@@ -58,14 +57,14 @@ export default function Register() {
             role="founder"
             title="Founder"
             description="Post startups, review applicants."
-            selected={form.role === "founder"}
+            selected={form.role === 'founder'}
             onSelect={(role) => setForm((f) => ({ ...f, role }))}
           />
           <RoleOption
             role="developer"
             title="Developer"
             description="Browse startups, apply to build."
-            selected={form.role === "developer"}
+            selected={form.role === 'developer'}
             onSelect={(role) => setForm((f) => ({ ...f, role }))}
           />
         </div>
@@ -124,7 +123,7 @@ export default function Register() {
       </form>
 
       <p className="mt-6 text-center text-sm text-paper-dim">
-        Already have an account?{" "}
+        Already have an account?{' '}
         <Link to="/login" className="font-medium text-cyan hover:underline">
           Sign in
         </Link>

@@ -1,7 +1,15 @@
-import Modal from "./Modal.jsx";
-import Button from "../ui/Button.jsx";
+import Modal from './Modal.jsx';
+import Button from '../ui/Button.jsx';
 
-export default function ConfirmDialog({ open, onClose, onConfirm, title, body, confirmLabel = "Delete", confirming = false }) {
+export default function ConfirmDialog({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  body,
+  confirmLabel = 'Delete',
+  confirming = false,
+}) {
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <p className="text-sm text-paper-dim">{body}</p>

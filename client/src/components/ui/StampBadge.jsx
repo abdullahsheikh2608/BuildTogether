@@ -1,14 +1,14 @@
 const STAMPS = {
-  pending: { label: "Pending Review", color: "var(--color-amber)", rotate: "-3deg" },
-  accepted: { label: "Accepted", color: "var(--color-ink-green)", rotate: "-5deg" },
-  rejected: { label: "Rejected", color: "var(--color-ink-red)", rotate: "4deg" },
+  pending: { label: 'Pending Review', color: 'var(--color-amber)', rotate: '-3deg' },
+  accepted: { label: 'Accepted', color: 'var(--color-ink-green)', rotate: '-5deg' },
+  rejected: { label: 'Rejected', color: 'var(--color-ink-red)', rotate: '4deg' },
 };
 
 /**
  * Renders a status like an inspector's ink stamp on a blueprint.
  * status: "pending" | "accepted" | "rejected"
  */
-export default function StampBadge({ status = "pending" }) {
+export default function StampBadge({ status = 'pending' }) {
   const stamp = STAMPS[status] ?? STAMPS.pending;
 
   return (

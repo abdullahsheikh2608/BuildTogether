@@ -1,16 +1,16 @@
 const VARIANTS = {
-  primary: "bg-amber text-blueprint-950 hover:bg-cyan border-transparent",
-  outline: "bg-transparent text-cyan border-cyan hover:bg-cyan/10",
-  ghost: "bg-transparent text-paper-dim border-transparent hover:text-paper hover:bg-white/5",
-  danger: "bg-transparent text-ink-red border-ink-red hover:bg-ink-red/10",
+  primary: 'bg-amber text-blueprint-950 hover:bg-cyan border-transparent',
+  outline: 'bg-transparent text-cyan border-cyan hover:bg-cyan/10',
+  ghost: 'bg-transparent text-paper-dim border-transparent hover:text-paper hover:bg-white/5',
+  danger: 'bg-transparent text-ink-red border-ink-red hover:bg-ink-red/10',
 };
 
 export default function Button({
-  as: Tag = "button",
-  variant = "primary",
+  as: Tag = 'button',
+  variant = 'primary',
   loading = false,
   disabled = false,
-  className = "",
+  className = '',
   children,
   ...props
 }) {

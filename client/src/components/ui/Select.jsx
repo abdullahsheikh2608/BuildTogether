@@ -1,4 +1,4 @@
-export default function Select({ label, id, options, className = "", ...props }) {
+export default function Select({ label, id, options, className = '', ...props }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (

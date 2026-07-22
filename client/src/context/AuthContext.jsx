@@ -1,22 +1,22 @@
-import { useEffect, useRef, useState } from "react";
-import { AuthContext } from "./auth-context.js";
+import { useEffect, useRef, useState } from 'react';
+import { AuthContext } from './auth-context.js';
 import {
   login as loginRequest,
   register as registerRequest,
   getMe,
   updateProfile as updateProfileRequest,
-} from "../services/auth.service.js";
+} from '../services/auth.service.js';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(() => !!localStorage.getItem("access_token"));
+  const [loading, setLoading] = useState(() => !!localStorage.getItem('access_token'));
   const restoreRef = useRef(false);
 
   useEffect(() => {
     if (restoreRef.current) return;
     restoreRef.current = true;
 
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem('access_token');
     if (!token) {
       setLoading(false);
       return;
@@ -25,13 +25,13 @@ export function AuthProvider({ children }) {
     getMe()
       .then((freshUser) => setUser(freshUser))
       .catch(() => {
-        localStorage.removeItem("access_token");
+        localStorage.removeItem('access_token');
       })
       .finally(() => setLoading(false));
   }, []);
 
   const persistSession = ({ user: nextUser, token }) => {
-    localStorage.setItem("access_token", token);
+    localStorage.setItem('access_token', token);
     setUser(nextUser);
   };
 
@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("access_token");
+    localStorage.removeItem('access_token');
     setUser(null);
   };
 

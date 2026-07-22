@@ -1,108 +1,65 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from 'react-router-dom';
 
-import Login from "./pages/auth/Login.jsx";
-import Register from "./pages/auth/Register.jsx";
+import Login from './pages/auth/Login.jsx';
+import Register from './pages/auth/Register.jsx';
 
-import ProtectedRoute from "./routes/ProtectedRoute.jsx";
-import RoleRoute from "./routes/RoleRoute.jsx";
+import ProtectedRoute from './routes/ProtectedRoute.jsx';
+import RoleRoute from './routes/RoleRoute.jsx';
 
-import DashboardLayout from "./components/layout/DashboardLayout.jsx";
+import DashboardLayout from './components/layout/DashboardLayout.jsx';
 
 // Founder Pages
-import FounderDashboard from "./pages/founder/FounderDashboard.jsx";
-import StartupApplications from "./pages/founder/StartupApplication.jsx";
+import FounderDashboard from './pages/founder/FounderDashboard.jsx';
+import StartupApplications from './pages/founder/StartupApplication.jsx';
 
 // Developer Pages
-import DeveloperDashboard from "./pages/developer/DeveloperDashboard.jsx";
-import BrowseStartups from "./pages/developer/BrowseStartups.jsx";
-import StartupDetails from "./pages/developer/StartupDetails.jsx";
-import MyApplications from "./pages/developer/MyApplications.jsx";
+import DeveloperDashboard from './pages/developer/DeveloperDashboard.jsx';
+import BrowseStartups from './pages/developer/BrowseStartups.jsx';
+import StartupDetails from './pages/developer/StartupDetails.jsx';
+import MyApplications from './pages/developer/MyApplications.jsx';
 
 // Profile
-import Profile from "./pages/profile/Profile.jsx";
+import Profile from './pages/profile/Profile.jsx';
 
 function App() {
-    return (
-        <Routes>
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
-            <Route
-                path="/"
-                element={<Navigate to="/login" replace />}
-            />
+      <Route path="/login" element={<Login />} />
 
-            <Route
-                path="/login"
-                element={<Login />}
-            />
+      <Route path="/register" element={<Register />} />
 
-            <Route
-                path="/register"
-                element={<Register />}
-            />
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
+        {/* Shared Layout (ONLY ONE) */}
+        <Route element={<DashboardLayout />}>
+          {/* Profile */}
+          <Route path="/profile" element={<Profile />} />
 
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
+          {/* Founder Routes */}
+          <Route element={<RoleRoute role="founder" />}>
+            <Route path="/founder" element={<FounderDashboard />} />
 
-                {/* Shared Layout (ONLY ONE) */}
-                <Route element={<DashboardLayout />}>
+            <Route path="/founder/startups/:id/applications" element={<StartupApplications />} />
+          </Route>
 
-                    {/* Profile */}
-                    <Route
-                        path="/profile"
-                        element={<Profile />}
-                    />
+          {/* Developer Routes */}
+          <Route element={<RoleRoute role="developer" />}>
+            <Route path="/dashboard" element={<DeveloperDashboard />} />
 
-                    {/* Founder Routes */}
-                    <Route element={<RoleRoute role="founder" />}>
+            <Route path="/dashboard/startups" element={<BrowseStartups />} />
 
-                        <Route
-                            path="/founder"
-                            element={<FounderDashboard />}
-                        />
+            <Route path="/dashboard/startups/:id" element={<StartupDetails />} />
 
-                        <Route
-                            path="/founder/startups/:id/applications"
-                            element={<StartupApplications />}
-                        />
+            <Route path="/dashboard/applications" element={<MyApplications />} />
+          </Route>
+        </Route>
+      </Route>
 
-                    </Route>
-
-                    {/* Developer Routes */}
-                    <Route element={<RoleRoute role="developer" />}>
-
-                        <Route
-                            path="/dashboard"
-                            element={<DeveloperDashboard />}
-                        />
-
-                        <Route
-                            path="/dashboard/startups"
-                            element={<BrowseStartups />}
-                        />
-
-                        <Route
-                            path="/dashboard/startups/:id"
-                            element={<StartupDetails />}
-                        />
-
-                        <Route
-                            path="/dashboard/applications"
-                            element={<MyApplications />}
-                        />
-
-                    </Route>
-
-                </Route>
-
-            </Route>
-
-            <Route
-                path="*"
-                element={<Navigate to="/login" replace />}
-            />
-
-        </Routes>
-    );
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
 }
 
 export default App;

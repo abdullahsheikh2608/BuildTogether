@@ -1,6 +1,6 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth.js";
-import FullScreenLoader from "../components/ui/FullScreenLoader.jsx";
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.js';
+import FullScreenLoader from '../components/ui/FullScreenLoader.jsx';
 
 export default function ProtectedRoute() {
   const { isAuthenticated, loading } = useAuth();

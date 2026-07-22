@@ -1,28 +1,30 @@
-import { useState } from "react";
-import Modal from "../common/Modal.jsx";
-import Input from "../ui/Input.jsx";
-import TextArea from "../ui/TextArea.jsx";
-import Select from "../ui/Select.jsx";
-import Button from "../ui/Button.jsx";
+import { useEffect, useState } from 'react';
+import Modal from '../common/Modal.jsx';
+import Input from '../ui/Input.jsx';
+import TextArea from '../ui/TextArea.jsx';
+import Select from '../ui/Select.jsx';
+import Button from '../ui/Button.jsx';
+import { FORM_MESSAGES } from '../../constants/messages.js';
+import { useStartup } from '../../hooks/useStartup.js';
 
 const EMPTY_FORM = {
-  title: "",
-  tagline: "",
-  description: "",
-  tech_stack: "",
-  required_roles: "",
-  status: "open",
+  title: '',
+  tagline: '',
+  description: '',
+  tech_stack: '',
+  required_roles: '',
+  status: 'open',
 };
 
 const toFormState = (startup) =>
   startup
     ? {
-        title: startup.title ?? "",
-        tagline: startup.tagline ?? "",
-        description: startup.description ?? "",
-        tech_stack: (startup.tech_stack ?? []).join(", "),
-        required_roles: (startup.required_roles ?? []).join(", "),
-        status: startup.status ?? "open",
+        title: startup.title ?? '',
+        tagline: startup.tagline ?? '',
+        description: startup.description ?? '',
+        tech_stack: (startup.tech_stack ?? []).join(', '),
+        required_roles: (startup.required_roles ?? []).join(', '),
+        status: startup.status ?? 'open',
       }
     : EMPTY_FORM;
 
@@ -30,45 +32,60 @@ const toPayload = (form) => ({
   title: form.title.trim(),
   tagline: form.tagline.trim(),
   description: form.description.trim(),
-  tech_stack: form.tech_stack.split(",").map((s) => s.trim()).filter(Boolean),
-  required_roles: form.required_roles.split(",").map((s) => s.trim()).filter(Boolean),
+  tech_stack: form.tech_stack
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+  required_roles: form.required_roles
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
   status: form.status,
 });
 
-export default function StartupFormModal({ open, onClose, onSubmit, startup }) {
-  const [form, setForm] = useState(() => toFormState(startup));
-  const [error, setError] = useState("");
+export default function StartupFormModal({ open, onClose, onSubmit }) {
+  const { selectedStartup } = useStartup();
+  const [form, setForm] = useState(() => toFormState(selectedStartup));
+  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  useEffect(() => {
+    setForm(toFormState(selectedStartup));
+    setError('');
+  }, [selectedStartup, open]);
+
+  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = toPayload(form);
 
     if (payload.tech_stack.length === 0) {
-      setError("Add at least one technology.");
+      setError(FORM_MESSAGES.TECHNOLOGY_REQUIRED);
       return;
     }
     if (payload.required_roles.length === 0) {
-      setError("Add at least one required role.");
+      setError(FORM_MESSAGES.REQUIRED_ROLE_REQUIRED);
       return;
     }
 
-    setError("");
+    setError('');
     setSubmitting(true);
     try {
       await onSubmit(payload);
     } catch (err) {
-      setError(err.response?.data?.message ?? "Something went wrong. Try again.");
+      setError(err.response?.data?.message ?? FORM_MESSAGES.SUBMIT_FAILURE);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={startup ? "Revise blueprint" : "New blueprint"}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={selectedStartup ? 'Revise blueprint' : 'New blueprint'}
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input
           id="title"
@@ -124,8 +141,8 @@ export default function StartupFormModal({ open, onClose, onSubmit, startup }) {
           value={form.status}
           onChange={handleChange}
           options={[
-            { value: "open", label: "Open — accepting applicants" },
-            { value: "closed", label: "Closed — not accepting applicants" },
+            { value: 'open', label: 'Open — accepting applicants' },
+            { value: 'closed', label: 'Closed — not accepting applicants' },
           ]}
         />
 
@@ -140,7 +157,7 @@ export default function StartupFormModal({ open, onClose, onSubmit, startup }) {
             Cancel
           </Button>
           <Button type="submit" loading={submitting}>
-            {startup ? "Save changes" : "Post startup"}
+            {selectedStartup ? 'Save changes' : 'Post startup'}
           </Button>
         </div>
       </form>
