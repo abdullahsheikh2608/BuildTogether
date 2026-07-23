@@ -121,18 +121,33 @@ export const removeProjectMember = async (
     }
 
     // Remove member
+// Remove member
     await pool.query(
-        `
+    `
         UPDATE applications
         SET status = 'removed'
         WHERE startup_id = $1
         AND developer_id = $2
-        `,
-        [
-            startupId,
-            developerId,
-        ]
-    );
+    `,
+    [
+        startupId,
+        developerId,
+    ]
+);
 
-    return true;
+// Unassign all tasks of this member in this startup
+    await pool.query(
+    `
+        UPDATE tasks
+        SET assigned_to = NULL
+        WHERE startup_id = $1
+        AND assigned_to = $2
+    `,
+    [
+        startupId,
+        developerId,
+    ]
+);
+
+return true;
 };
