@@ -1,11 +1,7 @@
 import { HTTP_STATUS } from "../constants/statusCodes.js";
 import { MEMBER_MESSAGES } from "../constants/messages.js";
 
-import {
-    getStartupMembers as getStartupMembersService,
-    getMyProjects as getMyProjectsService,
-    removeProjectMember as removeProjectMemberService,
-} from "../services/member.service.js";
+import { memberService } from "../services/member.service.js";
 
 const getStartupMembers = async (req, res) => {
 
@@ -14,7 +10,7 @@ const getStartupMembers = async (req, res) => {
         const { id } = req.params;
         const founderId = req.user.id;
 
-        const members = await getStartupMembersService(
+        const members = await memberService.getStartupMembers(
             id,
             founderId
         );
@@ -64,7 +60,7 @@ const getMyProjects = async (req, res) => {
 
         const developerId = req.user.id;
 
-        const projects = await getMyProjectsService(
+        const projects = await memberService.getMyProjects(
             developerId
         );
 
@@ -100,7 +96,7 @@ const removeProjectMember = async (req, res) => {
         const { id, developerId } = req.params;
         const founderId = req.user.id;
 
-        const result = await removeProjectMemberService(
+        const result = await memberService.removeProjectMember(
             id,
             developerId,
             founderId

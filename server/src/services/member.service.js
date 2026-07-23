@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-export const getStartupMembers = async (startupId, founderId) => {
+ const getStartupMembers = async (startupId, founderId) => {
 
     // Check startup exists
     const startup = await pool.query(
@@ -50,7 +50,7 @@ export const getStartupMembers = async (startupId, founderId) => {
     return result.rows;
 };
 
-export const getMyProjects = async (developerId) => {
+const getMyProjects = async (developerId) => {
 
     const result = await pool.query(
         `
@@ -76,7 +76,7 @@ export const getMyProjects = async (developerId) => {
     return result.rows;
 };
 
-export const removeProjectMember = async (
+const removeProjectMember = async (
     startupId,
     developerId,
     founderId
@@ -150,4 +150,10 @@ export const removeProjectMember = async (
 );
 
 return true;
+};
+
+export const memberService = {
+    getStartupMembers,
+    getMyProjects,
+    removeProjectMember,
 };
