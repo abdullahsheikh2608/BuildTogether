@@ -6,6 +6,7 @@ import startupRoutes from "./startup.routes.js";
 import applicationRoutes from "./application.routes.js";
 import projectRoutes from "./project.routes.js";
 import taskRoutes from "./task.routes.js";
+import memberRoutes from "./member.routes.js";
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use("/startups", startupRoutes);
 router.use("/applications", applicationRoutes);
 router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
+router.use("/members", memberRoutes);
 
 export default router;
