@@ -16,3 +16,18 @@ export const validateStartupId = (req, res, next) => {
     next();
 
 };
+
+export const validateDeveloperId = (req, res, next) => {
+
+    const { developerId } = req.params;
+
+    if (!validator.isUUID(developerId, 4)) {
+        return res.status(400).json({
+            success: false,
+            message: MEMBER_MESSAGES.INVALID_DEVELOPER_ID,
+        });
+    }
+
+    next();
+
+};

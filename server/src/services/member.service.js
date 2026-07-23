@@ -75,3 +75,64 @@ export const getMyProjects = async (developerId) => {
 
     return result.rows;
 };
+
+export const removeProjectMember = async (
+    startupId,
+    developerId,
+    founderId
+) => {
+
+    // Check startup exists
+    const startup = await pool.query(
+        `
+        SELECT founder_id
+        FROM startups
+        WHERE id = $1
+        `,
+        [startupId]
+    );
+
+    if (startup.rows.length === 0) {
+        return "STARTUP_NOT_FOUND";
+    }
+
+    // Check ownership
+    if (startup.rows[0].founder_id !== founderId) {
+        return "FORBIDDEN";
+    }
+
+    // Check accepted member
+    const member = await pool.query(
+        `
+        SELECT id
+        FROM applications
+        WHERE startup_id = $1
+        AND developer_id = $2
+        AND status = 'accepted'
+        `,
+        [
+            startupId,
+            developerId,
+        ]
+    );
+
+    if (member.rows.length === 0) {
+        return "DEVELOPER_NOT_FOUND";
+    }
+
+    // Remove member
+    await pool.query(
+        `
+        UPDATE applications
+        SET status = 'removed'
+        WHERE startup_id = $1
+        AND developer_id = $2
+        `,
+        [
+            startupId,
+            developerId,
+        ]
+    );
+
+    return true;
+};

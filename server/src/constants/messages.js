@@ -168,4 +168,8 @@ export const MEMBER_MESSAGES = {
     NO_MEMBERS_FOUND: "No members found for this startup",
 
     NO_PROJECTS_FOUND: "You are not a member of any project",
+
+    MEMBER_REMOVED_SUCCESSFULLY: "Project member removed successfully",
+    INVALID_DEVELOPER_ID: "Invalid developer id",
+    DEVELOPER_NOT_FOUND: "Developer is not a member of this project",
 };

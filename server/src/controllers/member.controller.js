@@ -4,6 +4,7 @@ import { MEMBER_MESSAGES } from "../constants/messages.js";
 import {
     getStartupMembers as getStartupMembersService,
     getMyProjects as getMyProjectsService,
+    removeProjectMember as removeProjectMemberService,
 } from "../services/member.service.js";
 
 const getStartupMembers = async (req, res) => {
@@ -92,7 +93,58 @@ const getMyProjects = async (req, res) => {
 
 };
 
+const removeProjectMember = async (req, res) => {
+
+    try {
+
+        const { id, developerId } = req.params;
+        const founderId = req.user.id;
+
+        const result = await removeProjectMemberService(
+            id,
+            developerId,
+            founderId
+        );
+
+        if (result === "STARTUP_NOT_FOUND") {
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
+                success: false,
+                message: MEMBER_MESSAGES.STARTUP_NOT_FOUND,
+            });
+        }
+
+        if (result === "FORBIDDEN") {
+            return res.status(HTTP_STATUS.FORBIDDEN).json({
+                success: false,
+                message: MEMBER_MESSAGES.FORBIDDEN,
+            });
+        }
+
+        if (result === "DEVELOPER_NOT_FOUND") {
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
+                success: false,
+                message: MEMBER_MESSAGES.DEVELOPER_NOT_FOUND,
+            });
+        }
+
+        return res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: MEMBER_MESSAGES.MEMBER_REMOVED_SUCCESSFULLY,
+        });
+
+    } catch (error) {
+
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+
+};
+
 export const memberController = {
     getStartupMembers,
     getMyProjects,
+    removeProjectMember,
 };
