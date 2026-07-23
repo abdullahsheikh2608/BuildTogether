@@ -24,6 +24,7 @@ app.get("/", (req, res) => {
         message: "BuildTogether Backend Running 🚀"
     });
 });
+app.use("/api", routes);
 app.use("/api/v1", routes);
 
 app.use((req, res) => {

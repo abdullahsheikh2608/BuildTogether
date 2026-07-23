@@ -7,7 +7,7 @@ export const authorizeRole = (...roles) => {
 
             return res.status(403).json({
                 success: false,
-                message: FORBIDDEN_MESSAGE,
+                message: AUTH_MESSAGES.FORBIDDEN,
             });
 
         }

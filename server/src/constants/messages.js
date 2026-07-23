@@ -108,3 +108,48 @@ export const APPLICATION_MESSAGES = {
     ALREADY_UPDATED: "Application has already been updated",
 
 };
+
+export const TASK_MESSAGES = {
+    CREATED_SUCCESSFULLY: "Task created successfully",
+
+    FETCH_SUCCESSFULLY: "Tasks fetched successfully",
+
+    UPDATED_SUCCESSFULLY: "Task updated successfully",
+
+    DELETED_SUCCESSFULLY: "Task deleted successfully",
+
+    TASK_NOT_FOUND: "Task not found",
+
+    INVALID_TASK_ID: "Invalid task id",
+
+    TITLE_REQUIRED: "Task title is required",
+
+    DESCRIPTION_REQUIRED: "Task description is required",
+
+    STARTUP_ID_REQUIRED: "Startup id is required",
+
+    ASSIGNED_TO_REQUIRED: "Assigned developer is required",
+
+    PRIORITY_REQUIRED: "Task priority is required",
+
+    STATUS_REQUIRED: "Task status is required",
+
+    DEADLINE_REQUIRED: "Deadline is required",
+
+    INVALID_PRIORITY: "Invalid task priority",
+
+    INVALID_STATUS: "Invalid task status",
+
+    TITLE_LENGTH: "Title must be between 3 and 255 characters",
+
+    DESCRIPTION_LENGTH:
+        "Description must be between 10 and 1000 characters",
+
+    DEVELOPER_NOT_ACCEPTED:
+        "Developer is not an accepted member of this startup",
+
+    NOTHING_TO_UPDATE: "No fields provided to update",
+
+    FORBIDDEN:
+    "You are not allowed to perform this action",
+};
