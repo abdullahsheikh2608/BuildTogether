@@ -1,23 +1,10 @@
 import { Router } from "express";
 
-import {
-    createTaskController,
-    getStartupTasksController,
-    getMyTasksController,
-    updateTaskController,
-    updateTaskStatusController,
-    deleteTaskController,
-} from "../controllers/task.controller.js";
+import taskController from "../controllers/task.controller.js";
 
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorizeRole } from "../middlewares/role.middleware.js";
-import {
-    validateCreateTask,
-    validateTaskId,
-    validateStartupId,
-    validateUpdateTask,
-    validateUpdateTaskStatus,
-} from "../validators/task.validator.js";
+import taskValidator from "../validators/task.validator.js";
 
 const router = Router();
 
@@ -25,49 +12,49 @@ router.post(
     "/",
     authenticate,
     authorizeRole("founder"),
-    validateCreateTask,
-    createTaskController
+    taskValidator.validateCreateTask,
+    taskController.createTask
 );
 
 router.get(
     "/startup/:startupId",
     authenticate,
     authorizeRole("founder"),
-    validateStartupId,
-    getStartupTasksController
+    taskValidator.validateStartupId,
+    taskController.getStartupTasks
 );
 
 router.get(
     "/me",
     authenticate,
     authorizeRole("developer"),
-    getMyTasksController
+    taskController.getMyTasks
 );
 
 router.patch(
     "/:id",
     authenticate,
     authorizeRole("founder"),
-    validateTaskId,
-    validateUpdateTask,
-    updateTaskController
+    taskValidator.validateTaskId,
+    taskValidator.validateUpdateTask,
+    taskController.updateTask
 );
 
 router.patch(
     "/:id/status",
     authenticate,
     authorizeRole("developer"),
-    validateTaskId,
-    validateUpdateTaskStatus,
-    updateTaskStatusController
+    taskValidator.validateTaskId,
+    taskValidator.validateUpdateTaskStatus,
+    taskController.updateTaskStatus
 );
 
 router.delete(
     "/:id",
     authenticate,
     authorizeRole("founder"),
-    validateTaskId,
-    deleteTaskController
+    taskValidator.validateTaskId,
+    taskController.deleteTask
 );
 
 router.get("/", (req, res) => {
