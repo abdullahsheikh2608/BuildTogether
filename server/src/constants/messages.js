@@ -153,3 +153,15 @@ export const TASK_MESSAGES = {
     FORBIDDEN:
     "You are not allowed to perform this action",
 };
+
+export const NOTIFICATION_MESSAGES = {
+    FETCH_SUCCESSFULLY: "Notifications fetched successfully.",
+    READ_SUCCESSFULLY: "Notification marked as read successfully.",
+    READ_ALL_SUCCESSFULLY: "All notifications marked as read successfully.",
+    DELETE_SUCCESSFULLY: "Notification deleted successfully.",
+
+    NOTIFICATION_NOT_FOUND: "Notification not found.",
+    NO_NOTIFICATIONS_FOUND: "No notifications found.",
+
+    INVALID_NOTIFICATION_ID: "Invalid notification ID.",
+};
