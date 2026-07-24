@@ -187,3 +187,19 @@ export const MEMBER_MESSAGES = {
 
     DEVELOPER_NOT_FOUND: "Developer is not a member of this project",
 };
+
+export const PROJECT_MESSAGES = {
+    FETCH_SUCCESSFULLY: "Projects fetched successfully",
+
+    PROJECT_NOT_FOUND: "Project not found",
+
+    STARTUP_NOT_FOUND: "Startup not found",
+
+    INVALID_PROJECT_ID: "Invalid project id",
+
+    INVALID_STARTUP_ID: "Invalid startup id",
+
+    FORBIDDEN: "You are not allowed to access this project",
+
+    NO_PROJECTS_FOUND: "No projects found",
+};
