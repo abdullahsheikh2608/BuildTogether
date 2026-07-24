@@ -1,4 +1,6 @@
 import pool from "../config/db.js";
+import { notificationService } from "./notification.service.js";
+import { NOTIFICATION_TYPES } from "../constants/notification.constants.js";
 
 const taskService = {
     createTask: async (taskData, founderId) => {
@@ -77,6 +79,13 @@ const taskService = {
                 deadline,
             ]
         );
+        await notificationService.createNotification(
+        assigned_to,
+        "New Task Assigned",
+        `A new task "${title}" has been assigned to you.`,
+        NOTIFICATION_TYPES.TASK,
+        result.rows[0].id
+    );
 
         return result.rows[0];
     },
@@ -147,7 +156,11 @@ const taskService = {
     updateTask: async (taskId, founderId, taskData) => {
         const task = await pool.query(
             `
-            SELECT t.id, t.startup_id, s.founder_id
+            SELECT
+            t.id,
+            t.startup_id,
+            t.assigned_to,
+            s.founder_id
             FROM tasks t
             JOIN startups s ON t.startup_id = s.id
             WHERE t.id = $1
@@ -225,6 +238,20 @@ const taskService = {
             `,
             values
         );
+            if (
+                taskData.assigned_to !== undefined &&
+                task.rows[0].assigned_to !== taskData.assigned_to
+            ) {
+
+                await notificationService.createNotification(
+                    taskData.assigned_to,
+                    "Task Assigned",
+                    `A task "${result.rows[0].title}" has been assigned to you.`,
+                    NOTIFICATION_TYPES.TASK,
+                    result.rows[0].id
+    );
+
+}
 
         return result.rows[0];
     },

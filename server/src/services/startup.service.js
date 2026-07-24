@@ -50,7 +50,28 @@ export const createStartup = async (startupData, founderId) => {
     return result.rows[0];
 };
 
-export const getAllStartups = async () => {
+export const getAllStartups = async (userId = null, role = null) => {
+    if (role === 'founder') {
+        const result = await pool.query(`
+            SELECT
+                id,
+                founder_id,
+                title,
+                tagline,
+                description,
+                tech_stack,
+                required_roles,
+                status,
+                created_at,
+                updated_at
+            FROM startups
+            WHERE founder_id = $1
+            ORDER BY created_at DESC
+        `, [userId]);
+
+        return result.rows;
+    }
+
     const result = await pool.query(`
         SELECT
             id,

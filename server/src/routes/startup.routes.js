@@ -20,7 +20,7 @@ import {
 const router = Router();
 
 // Get all startups
-router.get("/", getAllStartups);
+router.get("/", authenticate, getAllStartups);
 
 // Get startup by id
 router.get(

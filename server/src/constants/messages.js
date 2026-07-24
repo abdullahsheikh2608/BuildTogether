@@ -154,6 +154,18 @@ export const TASK_MESSAGES = {
     "You are not allowed to perform this action",
 };
 
+export const NOTIFICATION_MESSAGES = {
+    FETCH_SUCCESSFULLY: "Notifications fetched successfully.",
+    READ_SUCCESSFULLY: "Notification marked as read successfully.",
+    READ_ALL_SUCCESSFULLY: "All notifications marked as read successfully.",
+    DELETE_SUCCESSFULLY: "Notification deleted successfully.",
+
+    NOTIFICATION_NOT_FOUND: "Notification not found.",
+    NO_NOTIFICATIONS_FOUND: "No notifications found.",
+
+    INVALID_NOTIFICATION_ID: "Invalid notification ID.",
+};
+
 export const MEMBER_MESSAGES = {
     FETCH_SUCCESSFULLY: "Project members fetched successfully",
 
@@ -170,6 +182,8 @@ export const MEMBER_MESSAGES = {
     NO_PROJECTS_FOUND: "You are not a member of any project",
 
     MEMBER_REMOVED_SUCCESSFULLY: "Project member removed successfully",
+
     INVALID_DEVELOPER_ID: "Invalid developer id",
+
     DEVELOPER_NOT_FOUND: "Developer is not a member of this project",
 };

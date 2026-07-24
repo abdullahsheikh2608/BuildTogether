@@ -24,7 +24,7 @@ export const createStartup = async (req, res, next) => {
 
 export const getAllStartups = async (req, res, next) => {
     try {
-        const startups = await getAllStartupsService();
+        const startups = await getAllStartupsService(req.user.id, req.user.role);
 
         return res.status(200).json({
             success: true,

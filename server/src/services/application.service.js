@@ -1,4 +1,6 @@
 import pool from "../config/db.js";
+import { notificationService } from "./notification.service.js";
+import { NOTIFICATION_TYPES } from "../constants/notification.constants.js";
 
 export const createApplication = async (applicationData, developerId) => {
 
@@ -168,6 +170,11 @@ export const updateApplicationStatus = async (
         SELECT
             a.id,
             a.status,
+            a.developer_id,
+            a.startup_id,
+
+            s.title,
+
             s.founder_id
 
         FROM applications a
@@ -215,6 +222,21 @@ export const updateApplicationStatus = async (
             applicationId,
         ]
     );
+    await notificationService.createNotification(
+
+    result.rows[0].developer_id,
+
+    "Application Status Updated",
+
+    status === "accepted"
+        ? `Congratulations! Your application for "${application.rows[0].title}" has been accepted.`
+        : `Your application for "${application.rows[0].title}" has been rejected.`,
+
+    NOTIFICATION_TYPES.APPLICATION,
+
+    applicationId
+
+);
 
     return result.rows[0];
 };
