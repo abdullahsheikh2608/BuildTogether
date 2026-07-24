@@ -114,9 +114,9 @@ export const validateLogin = (req, res, next) => {
 };
 
 export const validateProfileUpdate = (req, res, next) => {
-    const { full_name, username, role } = req.body;
+    const { full_name, username } = req.body;
 
-    if (!full_name || !username || !role) {
+    if (!full_name || !username) {
         return sendValidationError(
             res,
             AUTH_MESSAGES.ALL_FIELDS_REQUIRED
@@ -134,13 +134,6 @@ export const validateProfileUpdate = (req, res, next) => {
         return sendValidationError(
             res,
             "Username can contain only letters, numbers and underscore (_)."
-        );
-    }
-
-    if (!["founder", "developer"].includes(role)) {
-        return sendValidationError(
-            res,
-            AUTH_MESSAGES.INVALID_ROLE
         );
     }
 

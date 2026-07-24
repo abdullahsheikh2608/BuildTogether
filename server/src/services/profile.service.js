@@ -2,7 +2,7 @@ import pool from "../config/db.js";
 import { AUTH_MESSAGES } from "../constants/messages.js";
 
 export const updateUserProfile = async (userId, profileData) => {
-    const { full_name, username, role } = profileData;
+    const { full_name, username } = profileData;
 
     const existingUsername = await pool.query(
         `
@@ -21,15 +21,6 @@ export const updateUserProfile = async (userId, profileData) => {
 
     try {
         await client.query("BEGIN");
-
-        await client.query(
-            `
-            UPDATE users
-            SET role = $1
-            WHERE id = $2
-            `,
-            [role, userId]
-        );
 
         const profileExists = await client.query(
             `
