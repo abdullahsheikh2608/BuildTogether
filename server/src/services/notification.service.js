@@ -103,7 +103,41 @@ const deleteNotification = async (notificationId, userId) => {
 
 };
 
+const createNotification = async (
+    userId,
+    title,
+    message,
+    type,
+    referenceId = null
+) => {
+
+    const result = await pool.query(
+        `
+        INSERT INTO notifications (
+            user_id,
+            title,
+            message,
+            type,
+            reference_id
+        )
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id
+        `,
+        [
+            userId,
+            title,
+            message,
+            type,
+            referenceId,
+        ]
+    );
+
+    return result.rows[0];
+
+};
+
 export const notificationService = {
+    createNotification,
     getMyNotifications,
     markNotificationAsRead,
     markAllNotificationsAsRead,
