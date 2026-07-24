@@ -165,3 +165,25 @@ export const NOTIFICATION_MESSAGES = {
 
     INVALID_NOTIFICATION_ID: "Invalid notification ID.",
 };
+
+export const MEMBER_MESSAGES = {
+    FETCH_SUCCESSFULLY: "Project members fetched successfully",
+
+    PROJECTS_FETCHED_SUCCESSFULLY: "Projects fetched successfully",
+
+    STARTUP_NOT_FOUND: "Startup not found",
+
+    INVALID_STARTUP_ID: "Invalid startup id",
+
+    FORBIDDEN: "You are not allowed to access this startup",
+
+    NO_MEMBERS_FOUND: "No members found for this startup",
+
+    NO_PROJECTS_FOUND: "You are not a member of any project",
+
+    MEMBER_REMOVED_SUCCESSFULLY: "Project member removed successfully",
+
+    INVALID_DEVELOPER_ID: "Invalid developer id",
+
+    DEVELOPER_NOT_FOUND: "Developer is not a member of this project",
+};
