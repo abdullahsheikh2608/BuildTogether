@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import ProjectWorkspace from "./pages/founder/ProjectWorkspace.jsx";
 
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/auth/Register.jsx';
@@ -40,6 +41,10 @@ function App() {
           {/* Founder Routes */}
           <Route element={<RoleRoute role="founder" />}>
             <Route path="/founder" element={<FounderDashboard />} />
+            <Route
+            path="/founder/projects/:startupId"
+            element={<ProjectWorkspace />}
+          />
 
             <Route path="/founder/startups/:id/applications" element={<StartupApplications />} />
           </Route>

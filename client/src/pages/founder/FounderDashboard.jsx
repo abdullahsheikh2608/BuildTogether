@@ -43,13 +43,17 @@ export default function FounderDashboard() {
     setFormOpen(true);
   };
 
+  const startupList = Array.isArray(startups) ? startups : [];
+
   const handleFormSubmit = async (payload) => {
     if (selectedStartup) {
       const updated = await updateStartup(selectedStartup.id, payload);
-      setStartups((list) => list.map((s) => (s.id === updated.id ? updated : s)));
+      setStartups((list) =>
+        (Array.isArray(list) ? list : []).map((s) => (s.id === updated.id ? updated : s))
+      );
     } else {
       const created = await createStartup(payload);
-      setStartups((list) => [created, ...list]);
+      setStartups((list) => [created, ...(Array.isArray(list) ? list : [])]);
     }
     setFormOpen(false);
     setSelectedStartup(null);
@@ -59,7 +63,9 @@ export default function FounderDashboard() {
     setDeleting(true);
     try {
       await deleteStartup(deleteTarget.id);
-      setStartups((list) => list.filter((s) => s.id !== deleteTarget.id));
+      setStartups((list) =>
+        (Array.isArray(list) ? list : []).filter((s) => s.id !== deleteTarget.id)
+      );
       setDeleteTarget(null);
     } catch {
       setError("Couldn't delete that startup. Try again.");
@@ -89,7 +95,7 @@ export default function FounderDashboard() {
       <div className="mt-8">
         {loading ? (
           <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading…</p>
-        ) : startups.length === 0 ? (
+        ) : startupList.length === 0 ? (
           <EmptyState
             title="No startups posted yet"
             body="Draft your first blueprint — add the tech stack and roles you need, and developers can start applying."
@@ -97,10 +103,10 @@ export default function FounderDashboard() {
           />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2">
-            {startups.map((startup) => (
+            {startupList.map((startup) => (
               <StartupCard
                 key={startup.id}
-                startupId={startup.id}
+                startup={startup}
                 role="founder"
                 onEdit={openEdit}
                 onDelete={setDeleteTarget}

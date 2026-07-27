@@ -26,7 +26,7 @@ export default function StartupDetails() {
 
         setStartup(startupData);
 
-        const applied = applications.some((app) => app.startup_id === id);
+        const applied = Array.isArray(applications) && applications.some((app) => app.startup_id === id);
 
         setAlreadyApplied(applied);
       } catch {

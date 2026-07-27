@@ -43,6 +43,8 @@ export default function StartupApplications() {
     }
   };
 
+  const appList = Array.isArray(applications) ? applications : [];
+
   return (
     <div className="mx-auto max-w-6xl">
       <Link
@@ -70,13 +72,13 @@ export default function StartupApplications() {
       <div className="mt-8 flex flex-col gap-4">
         {loading ? (
           <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading…</p>
-        ) : applications.length === 0 ? (
+        ) : appList.length === 0 ? (
           <EmptyState
             title="No applications yet"
             body="Once developers apply to this startup, their applications will show up here for review."
           />
         ) : (
-          applications.map((app) => (
+          appList.map((app) => (
             <div key={app.id} className="blueprint-card animate-draft-in flex flex-col gap-3 p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>

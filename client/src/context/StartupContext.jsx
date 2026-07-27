@@ -1,4 +1,4 @@
-﻿import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StartupContext } from "./startup-context.js";
 import { getAllStartups } from "../services/startup.service.js";
 
@@ -14,10 +14,12 @@ export function StartupProvider({ children }) {
 
     try {
       const data = await getAllStartups();
-      setStartups(data);
-      return data;
+      const list = Array.isArray(data) ? data : [];
+      setStartups(list);
+      return list;
     } catch (err) {
       setError("Unable to load startups.");
+      setStartups([]);
       return [];
     } finally {
       setLoading(false);
@@ -25,7 +27,7 @@ export function StartupProvider({ children }) {
   }, []);
 
   const getStartupById = useCallback(
-    (id) => startups.find((startup) => startup.id === id),
+    (id) => (Array.isArray(startups) ? startups.find((startup) => String(startup.id) === String(id)) : undefined),
     [startups]
   );
 
