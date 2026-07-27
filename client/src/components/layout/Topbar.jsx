@@ -1,16 +1,31 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import LogoutModal from '../common/LogoutModal.jsx';
 
-import { User, LogOut, ChevronDown } from 'lucide-react';
+import { User, LogOut, PanelLeftOpen, PanelLeftClose, Menu } from 'lucide-react';
 
-export default function Topbar() {
+export default function Topbar({ collapsed, onToggleSidebar }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    }
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuOpen]);
 
   const initials = user?.full_name
     ? user.full_name
@@ -27,22 +42,28 @@ export default function Topbar() {
 
   return (
     <>
-      <header className="flex h-20 items-center justify-end border-b border-blueprint-line bg-blueprint-900 px-8">
-        <div className="relative">
+      <header className="sticky top-0 z-20 flex h-20 flex-shrink-0 items-center justify-between border-b border-blueprint-line bg-blueprint-900 px-8">
+        {/* Toggle Sidebar Button */}
+        <button
+          onClick={onToggleSidebar}
+          className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-blueprint-800/80 px-3.5 py-2 text-sm font-medium text-paper transition hover:border-cyan hover:bg-blueprint-800 hover:text-cyan focus:outline-none shadow-sm cursor-pointer"
+          title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          aria-label="Toggle Sidebar"
+        >
+          {collapsed ? <Menu size={20} className="text-cyan" /> : <PanelLeftClose size={20} className="text-cyan" />}
+          <span>{collapsed ? 'Show Menu' : 'Hide Menu'}</span>
+        </button>
+        <div className="relative" ref={menuRef}>
           {/* Avatar Button */}
 
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="group flex items-center gap-2 rounded-full transition"
+            className="group flex items-center rounded-full transition focus:outline-none"
+            aria-label="User Menu"
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cyan text-lg font-bold text-black shadow-md transition group-hover:scale-105">
               {initials}
             </div>
-
-            <ChevronDown
-              size={18}
-              className={`text-paper-dim transition ${menuOpen ? 'rotate-180' : ''}`}
-            />
           </button>
 
           {/* Dropdown Menu */}

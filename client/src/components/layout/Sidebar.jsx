@@ -1,10 +1,10 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
-import { LayoutDashboard, Rocket, FileText, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, Rocket, FileText, User, LogOut, PanelLeftClose } from 'lucide-react';
 import { useState } from 'react';
 import LogoutModal from '../ui/LogoutModal.jsx';
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { user, logout } = useAuth();
@@ -16,7 +16,7 @@ export default function Sidebar() {
       icon: LayoutDashboard,
     },
     {
-      name: 'Browse Startups',
+      name: 'Startup',
       path: '/dashboard/startups',
       icon: Rocket,
     },
@@ -38,13 +38,29 @@ export default function Sidebar() {
   const links = user?.role === 'founder' ? founderLinks : developerLinks;
 
   return (
-    <aside className="flex h-screen w-72 flex-col border-r border-blueprint-line bg-blueprint-900">
+    <aside
+      className={`sticky top-0 flex h-screen flex-shrink-0 flex-col border-r border-blueprint-line bg-blueprint-900 z-30 transition-all duration-300 ease-in-out ${
+        collapsed ? 'w-0 border-r-0 opacity-0 overflow-hidden pointer-events-none' : 'w-72 opacity-100'
+      }`}
+    >
       {/* Logo */}
 
-      <div className="border-b border-blueprint-line p-6">
-        <h1 className="font-display text-2xl font-bold text-paper">BuildTogether</h1>
+      <div className="flex items-center justify-between border-b border-blueprint-line px-6 py-5">
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display text-xl font-bold text-paper truncate">BuildTogether</h1>
 
-        <p className="mt-1 text-sm text-paper-dim">Startup Collaboration Platform</p>
+          <p className="mt-0.5 text-xs text-paper-dim truncate">Startup Collaboration</p>
+        </div>
+
+        {onToggle && (
+          <button
+            onClick={onToggle}
+            className="flex-shrink-0 rounded-lg border border-blueprint-line bg-blueprint-800/60 p-2 text-paper-dim transition hover:border-cyan hover:text-cyan focus:outline-none cursor-pointer"
+            title="Hide Sidebar"
+          >
+            <PanelLeftClose size={18} />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}

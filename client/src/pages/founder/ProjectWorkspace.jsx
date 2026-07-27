@@ -5,9 +5,14 @@ import WorkspaceHeader from "../../components/project/WorkspaceHeader.jsx";
 import MemberCard from "../../components/project/MemberCard.jsx";
 import TaskCard from "../../components/project/TaskCard.jsx";
 
+import AssignTaskModal from "../../components/startup/AssignTaskModal.jsx";
+import { createTask } from "../../services/task.service.js";
+
 import { useStartup } from "../../hooks/useStartup.js";
 import { useTask } from "../../hooks/useTask.js";
 import { useMember } from "../../hooks/useMember.js";
+import { useToast } from "../../hooks/useToast.js";
+
 
 export default function ProjectWorkspace() {
     const { startupId } = useParams();
@@ -30,6 +35,8 @@ export default function ProjectWorkspace() {
     } = useMember();
 
     const [assignModalOpen, setAssignModalOpen] = useState(false);
+    const [creatingTask, setCreatingTask] = useState(false);
+    const { showToast } = useToast();
 
     useEffect(() => {
         loadStartups();
@@ -53,8 +60,33 @@ export default function ProjectWorkspace() {
     }, [startups, startupId]);
 
     const loading =
+
         tasksLoading ||
         membersLoading;
+
+    const handleAssignTask = async (taskData) => {
+    setCreatingTask(true);
+    try {
+        await createTask({
+            ...taskData,
+            startup_id: startupId,
+        });
+
+        await loadStartupTasks(startupId);
+
+        setAssignModalOpen(false);
+        showToast({ type: "success", message: "Task assigned successfully." });
+    } catch (error) {
+        showToast({
+            type: "error",
+            message:
+                error.response?.data?.message ?? "Unable to create task. Try again.",
+        });
+    } finally {
+        setCreatingTask(false);
+    }
+};
+
 
             return (
         <div className="mx-auto max-w-7xl space-y-8">
@@ -137,29 +169,14 @@ export default function ProjectWorkspace() {
 
                         {/* Assign Task Modal (Coming Soon) */}
 
-            {assignModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                    <div className="w-full max-w-md rounded-xl border border-blueprint-line bg-blueprint-900 p-6">
-                        <h2 className="font-display text-2xl font-semibold text-paper">
-                            Assign Task
-                        </h2>
-
-                        <p className="mt-3 text-paper-dim">
-                            Task assignment form will be connected in the next
-                            feature.
-                        </p>
-
-                        <div className="mt-6 flex justify-end">
-                            <button
-                                onClick={() => setAssignModalOpen(false)}
-                                className="rounded bg-cyan px-4 py-2 font-semibold text-black"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AssignTaskModal
+    key={assignModalOpen ? "open" : "closed"}
+    open={assignModalOpen}
+    onClose={() => setAssignModalOpen(false)}
+    members={members}
+    onSubmit={handleAssignTask}
+    loading={creatingTask}
+/>
 
         </div>
     );

@@ -10,23 +10,29 @@ export function useMember() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const loadMembers = useCallback(async (startupId) => {
-        try {
-            setLoading(true);
-            setError("");
+const loadMembers = useCallback(async (startupId) => {
+    try {
+        setLoading(true);
+        setError("");
 
-            const data = await getStartupMembers(startupId);
+        console.log("Startup ID:", startupId);
 
-            setMembers(Array.isArray(data) ? data : []);
-        } catch (err) {
-            setError(
-                err?.response?.data?.message ||
-                    "Unable to load members."
-            );
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+        const data = await getStartupMembers(startupId);
+
+        console.log("Members API Response:", data);
+
+        setMembers(Array.isArray(data) ? data : []);
+    } catch (err) {
+        console.log("Members Error:", err.response?.data || err);
+
+        setError(
+            err?.response?.data?.message ||
+            "Unable to load members."
+        );
+    } finally {
+        setLoading(false);
+    }
+}, []);
 
     const loadProjects = useCallback(async () => {
         try {

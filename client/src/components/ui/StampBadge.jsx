@@ -1,15 +1,22 @@
 const STAMPS = {
+  // Application review statuses
   pending: { label: 'Pending Review', color: 'var(--color-amber)', rotate: '-3deg' },
   accepted: { label: 'Accepted', color: 'var(--color-ink-green)', rotate: '-5deg' },
   rejected: { label: 'Rejected', color: 'var(--color-ink-red)', rotate: '4deg' },
+
+  // Task progress statuses
+  todo: { label: 'To Do', color: 'var(--color-paper-faint)', rotate: '-3deg' },
+  in_progress: { label: 'In Progress', color: 'var(--color-cyan)', rotate: '2deg' },
+  completed: { label: 'Completed', color: 'var(--color-ink-green)', rotate: '-4deg' },
 };
 
 /**
  * Renders a status like an inspector's ink stamp on a blueprint.
- * status: "pending" | "accepted" | "rejected"
+ * Application status: "pending" | "accepted" | "rejected"
+ * Task status: "todo" | "in_progress" | "completed"
  */
 export default function StampBadge({ status = 'pending' }) {
-  const stamp = STAMPS[status] ?? STAMPS.pending;
+  const stamp = STAMPS[status] ?? { label: status, color: 'var(--color-paper-faint)', rotate: '0deg' };
 
   return (
     <span
