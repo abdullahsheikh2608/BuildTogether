@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button.jsx';
 import { useStartup } from '../../hooks/useStartup.js';
 
-export default function DeveloperStartupCard({ startupId }) {
+export default function DeveloperStartupCard({ startup: startupProp, startupId }) {
   const { getStartupById } = useStartup();
-  const startup = getStartupById(startupId);
+  const startup = startupProp || getStartupById(startupId);
   const navigate = useNavigate();
 
   if (!startup) return null;

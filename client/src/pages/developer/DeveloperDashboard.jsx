@@ -41,13 +41,15 @@ export default function DeveloperDashboard() {
   //     fetchApplications();
   // }, []);
 
-  const totalApplications = applications.length;
+  const appList = Array.isArray(applications) ? applications : [];
 
-  const pendingApplications = applications.filter((app) => app.status === 'pending').length;
+  const totalApplications = appList.length;
 
-  const acceptedApplications = applications.filter((app) => app.status === 'accepted').length;
+  const pendingApplications = appList.filter((app) => app.status === 'pending').length;
 
-  const rejectedApplications = applications.filter((app) => app.status === 'rejected').length;
+  const acceptedApplications = appList.filter((app) => app.status === 'accepted').length;
+
+  const rejectedApplications = appList.filter((app) => app.status === 'rejected').length;
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -134,11 +136,11 @@ export default function DeveloperDashboard() {
       <div className="mt-10 rounded-xl border border-slate-700 bg-slate-900 p-6">
         <h2 className="text-xl font-semibold text-paper">Recent Activity</h2>
 
-        {applications.length === 0 ? (
+        {appList.length === 0 ? (
           <p className="mt-4 text-paper-dim">No recent activity.</p>
         ) : (
           <div className="mt-5 space-y-4">
-            {applications.slice(0, 3).map((app) => (
+            {appList.slice(0, 3).map((app) => (
               <div key={app.id} className="rounded-lg border border-slate-700 p-4">
                 <h3 className="font-semibold text-paper">{app.title}</h3>
 

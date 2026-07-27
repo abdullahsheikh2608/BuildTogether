@@ -2,13 +2,12 @@ import { useEffect } from 'react';
 import DeveloperStartupCard from '../../components/startup/DeveloperStartupCard.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import { useStartup } from '../../hooks/useStartup.js';
-
 export default function BrowseStartups() {
   const { startups, loading, error, loadStartups } = useStartup();
-
   useEffect(() => {
     loadStartups();
   }, [loadStartups]);
+  const startupList = Array.isArray(startups) ? startups : [];
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -16,25 +15,21 @@ export default function BrowseStartups() {
         <span className="font-mono text-xs font-semibold uppercase tracking-widest text-cyan">
           Developer
         </span>
-
-        <h1 className="mt-2 font-display text-3xl font-bold text-paper">Browse Startups</h1>
-
+        <h1 className="mt-2 font-display text-3xl font-bold text-paper">Startups</h1>
         <p className="mt-2 text-paper-dim">Find startups that match your skills.</p>
-
         {error && <p className="mt-6 text-red-500">{error}</p>}
-
         <div className="mt-8">
           {loading ? (
-            <p>Loading...</p>
-          ) : startups.length === 0 ? (
+            <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading...</p>
+          ) : startupList.length === 0 ? (
             <EmptyState
               title="No startups available"
               body="There are currently no startups accepting developers."
             />
           ) : (
             <div className="grid gap-5 sm:grid-cols-2">
-              {startups.map((startup) => (
-                <DeveloperStartupCard key={startup.id} startupId={startup.id} />
+              {startupList.map((startup) => (
+                <DeveloperStartupCard key={startup.id} startup={startup} />
               ))}
             </div>
           )}
