@@ -6,13 +6,14 @@ import MemberCard from "../../components/project/MemberCard.jsx";
 import TaskCard from "../../components/project/TaskCard.jsx";
 
 import AssignTaskModal from "../../components/startup/AssignTaskModal.jsx";
+
 import { createTask } from "../../services/task.service.js";
+import { removeMember } from "../../services/member.service.js";
 
 import { useStartup } from "../../hooks/useStartup.js";
 import { useTask } from "../../hooks/useTask.js";
 import { useMember } from "../../hooks/useMember.js";
 import { useToast } from "../../hooks/useToast.js";
-
 
 export default function ProjectWorkspace() {
     const { startupId } = useParams();
@@ -34,9 +35,10 @@ export default function ProjectWorkspace() {
         loadMembers,
     } = useMember();
 
+    const { showToast } = useToast();
+
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [creatingTask, setCreatingTask] = useState(false);
-    const { showToast } = useToast();
 
     useEffect(() => {
         loadStartups();
@@ -60,35 +62,74 @@ export default function ProjectWorkspace() {
     }, [startups, startupId]);
 
     const loading =
-
         tasksLoading ||
         membersLoading;
 
     const handleAssignTask = async (taskData) => {
-    setCreatingTask(true);
-    try {
-        await createTask({
-            ...taskData,
-            startup_id: startupId,
-        });
+        try {
+            setCreatingTask(true);
 
-        await loadStartupTasks(startupId);
+            await createTask({
+                ...taskData,
+                startup_id: startupId,
+            });
 
-        setAssignModalOpen(false);
-        showToast({ type: "success", message: "Task assigned successfully." });
-    } catch (error) {
-        showToast({
-            type: "error",
-            message:
-                error.response?.data?.message ?? "Unable to create task. Try again.",
-        });
-    } finally {
-        setCreatingTask(false);
-    }
-};
+            await loadStartupTasks(startupId);
 
+            setAssignModalOpen(false);
 
-            return (
+            showToast({
+                type: "success",
+                message: "Task assigned successfully.",
+            });
+
+        } catch (error) {
+
+            showToast({
+                type: "error",
+                message:
+                    error.response?.data?.message ??
+                    "Unable to create task.",
+            });
+
+        } finally {
+            setCreatingTask(false);
+        }
+    };
+
+    const handleRemoveMember = async (member) => {
+
+        const confirmed = window.confirm(
+            `Remove ${member.full_name} from this project?`
+        );
+
+        if (!confirmed) return;
+
+        try {
+
+            await removeMember(startupId, member.id);
+
+            await loadMembers(startupId);
+            await loadStartupTasks(startupId);
+
+            showToast({
+                type: "success",
+                message: "Member removed successfully.",
+            });
+
+        } catch (error) {
+
+            showToast({
+                type: "error",
+                message:
+                    error.response?.data?.message ??
+                    "Unable to remove member.",
+            });
+
+        }
+    };
+
+    return (
         <div className="mx-auto max-w-7xl space-y-8">
 
             <WorkspaceHeader
@@ -103,53 +144,73 @@ export default function ProjectWorkspace() {
                 {/* Team Members */}
 
                 <div className="blueprint-card rounded-xl p-6">
+
                     <h2 className="mb-5 font-display text-xl font-semibold text-paper">
                         Team Members
                     </h2>
 
                     {loading ? (
+
                         <p className="text-paper-dim">
                             Loading members...
                         </p>
+
                     ) : members.length === 0 ? (
+
                         <p className="text-paper-dim">
                             No members found.
                         </p>
+
                     ) : (
+
                         <div className="space-y-4">
+
                             {members.map((member) => (
+
                                 <MemberCard
                                     key={member.id}
                                     member={member}
-                                    onRemove={(member) =>
-                                        console.log("Remove", member)
-                                    }
+                                    onRemove={handleRemoveMember}
                                 />
+
                             ))}
+
                         </div>
+
                     )}
+
                 </div>
 
                 {/* Tasks */}
 
                 <div className="blueprint-card rounded-xl p-6 lg:col-span-2">
+
                     <div className="mb-5 flex items-center justify-between">
+
                         <h2 className="font-display text-xl font-semibold text-paper">
                             Project Tasks
                         </h2>
+
                     </div>
 
                     {loading ? (
+
                         <p className="text-paper-dim">
                             Loading tasks...
                         </p>
+
                     ) : tasks.length === 0 ? (
+
                         <p className="text-paper-dim">
                             No tasks available.
                         </p>
+
                     ) : (
+
                         <div className="space-y-5">
+
                             {tasks.map((task) => (
+
                                 <TaskCard
                                     key={task.id}
                                     task={task}
@@ -160,23 +221,25 @@ export default function ProjectWorkspace() {
                                         console.log("Delete", task)
                                     }
                                 />
+
                             ))}
+
                         </div>
+
                     )}
+
                 </div>
 
             </div>
 
-                        {/* Assign Task Modal (Coming Soon) */}
-
             <AssignTaskModal
-    key={assignModalOpen ? "open" : "closed"}
-    open={assignModalOpen}
-    onClose={() => setAssignModalOpen(false)}
-    members={members}
-    onSubmit={handleAssignTask}
-    loading={creatingTask}
-/>
+                key={assignModalOpen ? "open" : "closed"}
+                open={assignModalOpen}
+                onClose={() => setAssignModalOpen(false)}
+                members={members}
+                onSubmit={handleAssignTask}
+                loading={creatingTask}
+            />
 
         </div>
     );
