@@ -6,7 +6,7 @@ export const getStartupTasks = async (startupId) => {
 };
 
 export const getMyTasks = async () => {
-    const { data } = await api.get("/tasks/me");
+    const { data } = await api.get("/tasks");
     return data.data;
 };
 
@@ -22,4 +22,12 @@ export const updateTask = async (taskId, payload) => {
 
 export const deleteTask = async (taskId) => {
     await api.delete(`/tasks/${taskId}`);
+};
+
+export const updateTaskStatus = async (taskId, status) => {
+    const { data } = await api.patch(`/tasks/${taskId}/status`, {
+        status,
+    });
+
+    return data.data;
 };

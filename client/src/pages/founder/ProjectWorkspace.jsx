@@ -7,7 +7,9 @@ import TaskCard from "../../components/project/TaskCard.jsx";
 
 import AssignTaskModal from "../../components/startup/AssignTaskModal.jsx";
 
-import { createTask } from "../../services/task.service.js";
+import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
+
+import { createTask, deleteTask } from "../../services/task.service.js";
 import { removeMember } from "../../services/member.service.js";
 
 import { useStartup } from "../../hooks/useStartup.js";
@@ -39,6 +41,8 @@ export default function ProjectWorkspace() {
 
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [creatingTask, setCreatingTask] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deletingTask, setDeletingTask] = useState(false);
 
     useEffect(() => {
         loadStartups();
@@ -129,6 +133,34 @@ export default function ProjectWorkspace() {
         }
     };
 
+    const handleDeleteTask = async () => {
+        try {
+            setDeletingTask(true);
+
+            await deleteTask(deleteTarget.id);
+            await loadStartupTasks(startupId);
+
+            setDeleteTarget(null);
+
+            showToast({
+                type: "success",
+                message: "Task deleted.",
+            });
+
+        } catch (error) {
+
+            showToast({
+                type: "error",
+                message:
+                    error.response?.data?.message ??
+                    "Unable to delete task.",
+            });
+
+        } finally {
+            setDeletingTask(false);
+        }
+    };
+
     return (
         <div className="mx-auto max-w-7xl space-y-8">
 
@@ -214,12 +246,7 @@ export default function ProjectWorkspace() {
                                 <TaskCard
                                     key={task.id}
                                     task={task}
-                                    onEdit={(task) =>
-                                        console.log("Edit", task)
-                                    }
-                                    onDelete={(task) =>
-                                        console.log("Delete", task)
-                                    }
+                                    onDelete={setDeleteTarget}
                                 />
 
                             ))}
@@ -239,6 +266,15 @@ export default function ProjectWorkspace() {
                 members={members}
                 onSubmit={handleAssignTask}
                 loading={creatingTask}
+            />
+
+            <ConfirmDialog
+                open={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDeleteTask}
+                confirming={deletingTask}
+                title="Delete this task?"
+                body={`"${deleteTarget?.title}" will be permanently removed. This can't be undone.`}
             />
 
         </div>

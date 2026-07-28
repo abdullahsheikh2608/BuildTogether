@@ -6,7 +6,7 @@ export const getStartupMembers = async (startupId) => {
 };
 
 export const getMyProjects = async () => {
-    const { data } = await api.get("/members/me");
+    const { data } = await api.get("/members");
     return data.data;
 };
 
