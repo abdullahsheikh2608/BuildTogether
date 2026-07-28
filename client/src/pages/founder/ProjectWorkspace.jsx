@@ -1,91 +1,246 @@
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+
+import WorkspaceHeader from "../../components/project/WorkspaceHeader.jsx";
+import MemberCard from "../../components/project/MemberCard.jsx";
+import TaskCard from "../../components/project/TaskCard.jsx";
+
+import AssignTaskModal from "../../components/startup/AssignTaskModal.jsx";
+
+import { createTask } from "../../services/task.service.js";
+import { removeMember } from "../../services/member.service.js";
+
+import { useStartup } from "../../hooks/useStartup.js";
+import { useTask } from "../../hooks/useTask.js";
+import { useMember } from "../../hooks/useMember.js";
+import { useToast } from "../../hooks/useToast.js";
 
 export default function ProjectWorkspace() {
     const { startupId } = useParams();
 
+    const {
+        startups,
+        loadStartups,
+    } = useStartup();
+
+    const {
+        tasks,
+        loading: tasksLoading,
+        loadStartupTasks,
+    } = useTask();
+
+    const {
+        members,
+        loading: membersLoading,
+        loadMembers,
+    } = useMember();
+
+    const { showToast } = useToast();
+
+    const [assignModalOpen, setAssignModalOpen] = useState(false);
+    const [creatingTask, setCreatingTask] = useState(false);
+
+    useEffect(() => {
+        loadStartups();
+    }, [loadStartups]);
+
+    useEffect(() => {
+        if (!startupId) return;
+
+        loadMembers(startupId);
+        loadStartupTasks(startupId);
+    }, [
+        startupId,
+        loadMembers,
+        loadStartupTasks,
+    ]);
+
+    const startup = useMemo(() => {
+        return startups.find(
+            (item) => String(item.id) === String(startupId)
+        );
+    }, [startups, startupId]);
+
+    const loading =
+        tasksLoading ||
+        membersLoading;
+
+    const handleAssignTask = async (taskData) => {
+        try {
+            setCreatingTask(true);
+
+            await createTask({
+                ...taskData,
+                startup_id: startupId,
+            });
+
+            await loadStartupTasks(startupId);
+
+            setAssignModalOpen(false);
+
+            showToast({
+                type: "success",
+                message: "Task assigned successfully.",
+            });
+
+        } catch (error) {
+
+            showToast({
+                type: "error",
+                message:
+                    error.response?.data?.message ??
+                    "Unable to create task.",
+            });
+
+        } finally {
+            setCreatingTask(false);
+        }
+    };
+
+    const handleRemoveMember = async (member) => {
+
+        const confirmed = window.confirm(
+            `Remove ${member.full_name} from this project?`
+        );
+
+        if (!confirmed) return;
+
+        try {
+
+            await removeMember(startupId, member.id);
+
+            await loadMembers(startupId);
+            await loadStartupTasks(startupId);
+
+            showToast({
+                type: "success",
+                message: "Member removed successfully.",
+            });
+
+        } catch (error) {
+
+            showToast({
+                type: "error",
+                message:
+                    error.response?.data?.message ??
+                    "Unable to remove member.",
+            });
+
+        }
+    };
+
     return (
-        <div className="mx-auto max-w-7xl">
-            <div className="mb-8">
-                <p className="font-mono text-xs uppercase tracking-widest text-cyan">
-                    Project Workspace
-                </p>
+        <div className="mx-auto max-w-7xl space-y-8">
 
-                <h1 className="mt-2 text-3xl font-bold text-paper">
-                    Startup Workspace
-                </h1>
-
-                <p className="mt-2 text-paper-dim">
-                    Startup ID: {startupId}
-                </p>
-            </div>
+            <WorkspaceHeader
+                startup={startup}
+                membersCount={members.length}
+                tasksCount={tasks.length}
+                onAssignTask={() => setAssignModalOpen(true)}
+            />
 
             <div className="grid gap-6 lg:grid-cols-3">
-                {/* Members */}
-                <div className="rounded-xl border border-slate-700 bg-slate-900 p-6">
-                    <h2 className="mb-4 text-xl font-semibold text-paper">
+
+                {/* Team Members */}
+
+                <div className="blueprint-card rounded-xl p-6">
+
+                    <h2 className="mb-5 font-display text-xl font-semibold text-paper">
                         Team Members
                     </h2>
 
-                    <div className="space-y-3">
-                        <div className="rounded-lg bg-slate-800 p-3">
-                            Abdullah
+                    {loading ? (
+
+                        <p className="text-paper-dim">
+                            Loading members...
+                        </p>
+
+                    ) : members.length === 0 ? (
+
+                        <p className="text-paper-dim">
+                            No members found.
+                        </p>
+
+                    ) : (
+
+                        <div className="space-y-4">
+
+                            {members.map((member) => (
+
+                                <MemberCard
+                                    key={member.id}
+                                    member={member}
+                                    onRemove={handleRemoveMember}
+                                />
+
+                            ))}
+
                         </div>
 
-                        <div className="rounded-lg bg-slate-800 p-3">
-                            Ali
-                        </div>
+                    )}
 
-                        <div className="rounded-lg bg-slate-800 p-3">
-                            Ahmed
-                        </div>
-                    </div>
                 </div>
 
                 {/* Tasks */}
-                <div className="rounded-xl border border-slate-700 bg-slate-900 p-6 lg:col-span-2">
+
+                <div className="blueprint-card rounded-xl p-6 lg:col-span-2">
+
                     <div className="mb-5 flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-paper">
-                            Tasks
+
+                        <h2 className="font-display text-xl font-semibold text-paper">
+                            Project Tasks
                         </h2>
 
-                        <button className="rounded bg-cyan px-4 py-2 font-semibold text-black">
-                            Assign Task
-                        </button>
                     </div>
 
-                    <div className="space-y-4">
-                        <div className="rounded-lg bg-slate-800 p-4">
-                            <h3 className="font-semibold text-paper">
-                                Login API
-                            </h3>
+                    {loading ? (
 
-                            <p className="mt-1 text-paper-dim">
-                                Status: Pending
-                            </p>
+                        <p className="text-paper-dim">
+                            Loading tasks...
+                        </p>
+
+                    ) : tasks.length === 0 ? (
+
+                        <p className="text-paper-dim">
+                            No tasks available.
+                        </p>
+
+                    ) : (
+
+                        <div className="space-y-5">
+
+                            {tasks.map((task) => (
+
+                                <TaskCard
+                                    key={task.id}
+                                    task={task}
+                                    onEdit={(task) =>
+                                        console.log("Edit", task)
+                                    }
+                                    onDelete={(task) =>
+                                        console.log("Delete", task)
+                                    }
+                                />
+
+                            ))}
+
                         </div>
 
-                        <div className="rounded-lg bg-slate-800 p-4">
-                            <h3 className="font-semibold text-paper">
-                                Dashboard UI
-                            </h3>
+                    )}
 
-                            <p className="mt-1 text-paper-dim">
-                                Status: In Progress
-                            </p>
-                        </div>
-
-                        <div className="rounded-lg bg-slate-800 p-4">
-                            <h3 className="font-semibold text-paper">
-                                Notification Module
-                            </h3>
-
-                            <p className="mt-1 text-paper-dim">
-                                Status: Completed
-                            </p>
-                        </div>
-                    </div>
                 </div>
+
             </div>
+
+            <AssignTaskModal
+                key={assignModalOpen ? "open" : "closed"}
+                open={assignModalOpen}
+                onClose={() => setAssignModalOpen(false)}
+                members={members}
+                onSubmit={handleAssignTask}
+                loading={creatingTask}
+            />
+
         </div>
     );
 }

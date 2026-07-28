@@ -113,7 +113,7 @@ export default function DeveloperDashboard() {
             onClick={() => navigate('/dashboard/startups')}
             className="rounded-xl border border-cyan bg-slate-900 p-6 text-left transition hover:bg-slate-800"
           >
-            <h3 className="text-lg font-semibold text-paper">Browse Startups</h3>
+            <h3 className="text-lg font-semibold text-paper">Startup</h3>
 
             <p className="mt-2 text-sm text-paper-dim">Explore available startups and apply.</p>
           </button>

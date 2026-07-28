@@ -16,7 +16,7 @@ export default function Navbar() {
   const dashboardPath = user?.role === 'founder' ? '/founder' : '/dashboard';
 
   return (
-    <header className="border-b border-blueprint-line bg-blueprint-900/60">
+    <header className="sticky top-0 z-50 border-b border-blueprint-line bg-blueprint-900/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
 
@@ -54,7 +54,7 @@ export default function Navbar() {
                   }`
                 }
               >
-                Browse Startups
+                Startup
               </NavLink>
 
               <NavLink

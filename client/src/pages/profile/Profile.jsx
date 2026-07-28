@@ -7,7 +7,6 @@ export default function Profile() {
   const [formData, setFormData] = useState({
     full_name: '',
     username: '',
-    role: 'developer',
   });
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState('');
@@ -18,7 +17,6 @@ export default function Profile() {
       setFormData({
         full_name: user.full_name || '',
         username: user.username || '',
-        role: user.role || 'developer',
       });
     }
   }, [user]);
@@ -34,7 +32,7 @@ export default function Profile() {
     setMessage('');
 
     try {
-      await updateProfile(formData);
+      await updateProfile({ ...formData, role: user?.role });
       setMessage('Profile updated successfully');
       setIsEditing(false);
     } catch (error) {
@@ -48,7 +46,6 @@ export default function Profile() {
     setFormData({
       full_name: user?.full_name || '',
       username: user?.username || '',
-      role: user?.role || 'developer',
     });
     setIsEditing(false);
     setMessage('');
@@ -107,19 +104,6 @@ export default function Profile() {
                   onChange={handleChange}
                   className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-paper"
                 />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm text-paper-dim">Role</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-paper"
-                >
-                  <option value="developer">Developer</option>
-                  <option value="founder">Founder</option>
-                </select>
               </div>
 
               <div className="flex gap-3">
