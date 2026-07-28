@@ -1,5 +1,9 @@
 import { useCallback, useState } from "react";
-import { getStartupTasks, getMyTasks } from "../services/task.service";
+
+import {
+    getStartupTasks,
+    getMyTasks,
+} from "../services/task.service.js";
 
 export function useTask() {
     const [tasks, setTasks] = useState([]);
@@ -16,8 +20,8 @@ export function useTask() {
             setTasks(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(
-                err?.response?.data?.message ||
-                    "Unable to load tasks."
+                err?.response?.data?.message ??
+                "Unable to load startup tasks."
             );
         } finally {
             setLoading(false);
@@ -34,8 +38,8 @@ export function useTask() {
             setTasks(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(
-                err?.response?.data?.message ||
-                    "Unable to load tasks."
+                err?.response?.data?.message ??
+                "Unable to load your tasks."
             );
         } finally {
             setLoading(false);
@@ -49,6 +53,5 @@ export function useTask() {
         loadStartupTasks,
         loadMyTasks,
         setTasks,
-        setError,
     };
 }

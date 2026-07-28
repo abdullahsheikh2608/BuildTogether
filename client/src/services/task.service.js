@@ -23,3 +23,11 @@ export const updateTask = async (taskId, payload) => {
 export const deleteTask = async (taskId) => {
     await api.delete(`/tasks/${taskId}`);
 };
+
+export const updateTaskStatus = async (taskId, status) => {
+    const { data } = await api.patch(`/tasks/${taskId}/status`, {
+        status,
+    });
+
+    return data.data;
+};

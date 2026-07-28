@@ -22,6 +22,8 @@ import MyApplications from './pages/developer/MyApplications.jsx';
 // Profile
 import Profile from './pages/profile/Profile.jsx';
 
+import DeveloperWorkspace from "./pages/developer/DeveloperWorkspace.jsx";
+
 function App() {
   return (
     <Routes>
@@ -52,6 +54,10 @@ function App() {
           {/* Developer Routes */}
           <Route element={<RoleRoute role="developer" />}>
             <Route path="/dashboard" element={<DeveloperDashboard />} />
+            <Route
+              path="/developer/workspace/:startupId"
+              element={<DeveloperWorkspace />}
+          />
 
             <Route path="/dashboard/startups" element={<BrowseStartups />} />
 
