@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import LogoutModal from '../common/LogoutModal.jsx';
+import NotificationBell from './NotificationBell.jsx';
 
 import { User, LogOut, PanelLeftOpen, PanelLeftClose, Menu } from 'lucide-react';
 
@@ -53,7 +54,10 @@ export default function Topbar({ collapsed, onToggleSidebar }) {
           {collapsed ? <Menu size={20} className="text-cyan" /> : <PanelLeftClose size={20} className="text-cyan" />}
           <span>{collapsed ? 'Show Menu' : 'Hide Menu'}</span>
         </button>
-        <div className="relative" ref={menuRef}>
+        <div className="flex items-center gap-4">
+          <NotificationBell />
+
+          <div className="relative" ref={menuRef}>
           {/* Avatar Button */}
 
           <button
@@ -107,6 +111,7 @@ export default function Topbar({ collapsed, onToggleSidebar }) {
               </button>
             </div>
           )}
+          </div>
         </div>
       </header>
 
