@@ -3,7 +3,7 @@ import api from '../api/axios.js';
 export const applyToStartup = (payload) =>
   api.post('/applications', payload).then((res) => res.data.data);
 
-export const getMyApplications = () => api.get('/applications/me').then((res) => res.data.data);
+export const getMyApplications = () => api.get('/applications').then((res) => res.data.data);
 
 export const getStartupApplications = (startupId) =>
   api

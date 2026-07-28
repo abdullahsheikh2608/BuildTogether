@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DeveloperProjectCard from "../../components/project/DeveloperProjectCard.jsx";
 
 import { useDeveloper } from "../../hooks/useDeveloper.js";
+import { ProjectProvider } from "../../context/ProjectContext.jsx";
 
 export default function DeveloperDashboard() {
     const navigate = useNavigate();
@@ -78,11 +79,14 @@ export default function DeveloperDashboard() {
 
                     {projects.map((project) => (
 
-                        <DeveloperProjectCard
+                        <ProjectProvider
                             key={project.id}
                             project={project}
-                            onOpen={openWorkspace}
-                        />
+                        >
+                            <DeveloperProjectCard
+                                onOpen={openWorkspace}
+                            />
+                        </ProjectProvider>
 
                     ))}
 

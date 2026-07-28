@@ -133,7 +133,7 @@ export default function ProjectWorkspace() {
         }
     };
 
-    const handleDeleteTaskConfirm = async () => {
+    const handleDeleteTask = async () => {
         try {
             setDeletingTask(true);
 
@@ -271,7 +271,7 @@ export default function ProjectWorkspace() {
             <ConfirmDialog
                 open={!!deleteTarget}
                 onClose={() => setDeleteTarget(null)}
-                onConfirm={handleDeleteTaskConfirm}
+                onConfirm={handleDeleteTask}
                 confirming={deletingTask}
                 title="Delete this task?"
                 body={`"${deleteTarget?.title}" will be permanently removed. This can't be undone.`}
