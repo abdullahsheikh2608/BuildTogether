@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
 
 import DeveloperProjectCard from "../../components/project/DeveloperProjectCard.jsx";
+import Input from "../../components/ui/Input.jsx";
 
 import { useDeveloper } from "../../hooks/useDeveloper.js";
-import { ProjectProvider } from "../../context/ProjectContext.jsx";
 
 export default function DeveloperDashboard() {
     const navigate = useNavigate();
@@ -16,13 +17,25 @@ export default function DeveloperDashboard() {
         loadProjects,
     } = useDeveloper();
 
+    const [search, setSearch] = useState("");
+
     useEffect(() => {
         loadProjects();
     }, [loadProjects]);
 
-    const openWorkspace = (project) => {
-        navigate(`/developer/workspace/${project.id}`);
+    const openWorkspace = (projectId) => {
+        navigate(`/developer/workspace/${projectId}`);
     };
+
+    const filteredProjects = projects.filter((project) => {
+        const term = search.trim().toLowerCase();
+        if (!term) return true;
+
+        return (
+            project.title?.toLowerCase().includes(term) ||
+            project.tagline?.toLowerCase().includes(term)
+        );
+    });
 
     return (
         <div className="mx-auto max-w-7xl space-y-8">
@@ -42,6 +55,21 @@ export default function DeveloperDashboard() {
                 </p>
 
             </div>
+
+            {!loading && !error && projects.length > 0 && (
+                <div className="relative max-w-sm">
+                    <Search
+                        size={16}
+                        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-paper-faint"
+                    />
+                    <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search your projects..."
+                        className="[&>input]:pl-9"
+                    />
+                </div>
+            )}
 
             {loading && (
                 <div className="blueprint-card rounded-xl p-6">
@@ -73,20 +101,31 @@ export default function DeveloperDashboard() {
                 </div>
             )}
 
-            {!loading && !error && projects.length > 0 && (
+            {!loading && !error && projects.length > 0 && filteredProjects.length === 0 && (
+                <div className="blueprint-card rounded-xl p-8 text-center">
+
+                    <h2 className="font-display text-2xl text-paper">
+                        No Matching Projects
+                    </h2>
+
+                    <p className="mt-3 text-paper-dim">
+                        No projects match "{search}". Try a different search term.
+                    </p>
+
+                </div>
+            )}
+
+            {!loading && !error && filteredProjects.length > 0 && (
 
                 <div className="grid gap-6 md:grid-cols-2">
 
-                    {projects.map((project) => (
+                    {filteredProjects.map((project) => (
 
-                        <ProjectProvider
+                        <DeveloperProjectCard
                             key={project.id}
                             project={project}
-                        >
-                            <DeveloperProjectCard
-                                onOpen={openWorkspace}
-                            />
-                        </ProjectProvider>
+                            onOpen={openWorkspace}
+                        />
 
                     ))}
 
