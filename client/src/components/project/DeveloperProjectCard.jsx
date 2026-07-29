@@ -1,9 +1,11 @@
 import Button from "../ui/Button.jsx";
+import { useProject } from "../../context/ProjectContext.jsx";
 
 export default function DeveloperProjectCard({
-    project,
     onOpen,
 }) {
+    const project = useProject();
+
     return (
         <div className="blueprint-card rounded-xl p-6 flex items-center justify-between">
             <div>

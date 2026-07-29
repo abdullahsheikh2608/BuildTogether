@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 
 import DeveloperProjectCard from "../../components/project/DeveloperProjectCard.jsx";
 import Input from "../../components/ui/Input.jsx";
+import { ProjectProvider } from "../../context/ProjectContext.jsx";
 
 import { useDeveloper } from "../../hooks/useDeveloper.js";
 
@@ -121,11 +122,11 @@ export default function DeveloperDashboard() {
 
                     {filteredProjects.map((project) => (
 
-                        <DeveloperProjectCard
-                            key={project.id}
-                            project={project}
-                            onOpen={openWorkspace}
-                        />
+                        <ProjectProvider key={project.id} project={project}>
+                            <DeveloperProjectCard
+                                onOpen={openWorkspace}
+                            />
+                        </ProjectProvider>
 
                     ))}
 
