@@ -12,7 +12,7 @@ export const createApplication = async (applicationData, developerId) => {
     // Check startup exists
     const startup = await pool.query(
         `
-        SELECT id
+        SELECT id, founder_id, title
         FROM startups
         WHERE id = $1
         `,
@@ -69,6 +69,14 @@ export const createApplication = async (applicationData, developerId) => {
             developerId,
             message || null,
         ]
+    );
+
+    await notificationService.createNotification(
+        startup.rows[0].founder_id,
+        "New Application Received",
+        `You have a new application for "${startup.rows[0].title}".`,
+        NOTIFICATION_TYPES.APPLICATION,
+        result.rows[0].id
     );
 
     return result.rows[0];
@@ -175,12 +183,17 @@ export const updateApplicationStatus = async (
 
             s.title,
 
-            s.founder_id
+            s.founder_id,
+
+            p.full_name
 
         FROM applications a
 
         LEFT JOIN startups s
         ON a.startup_id = s.id
+
+        LEFT JOIN profiles p
+        ON p.user_id = a.developer_id
 
         WHERE a.id = $1
         `,
@@ -237,6 +250,16 @@ export const updateApplicationStatus = async (
     applicationId
 
 );
+
+    if (status === "accepted") {
+        await notificationService.createNotification(
+            founderId,
+            "New Member Joined",
+            `${application.rows[0].full_name || "A developer"} has joined "${application.rows[0].title}".`,
+            NOTIFICATION_TYPES.PROJECT,
+            applicationId
+        );
+    }
 
     return result.rows[0];
 };

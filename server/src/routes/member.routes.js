@@ -27,11 +27,4 @@ router.delete(
     memberController.removeProjectMember
 );
 
-// Developer Routes
-router.get(
-    "/me",
-    authenticate,
-    memberController.getMyProjects
-);
-
 export default router;

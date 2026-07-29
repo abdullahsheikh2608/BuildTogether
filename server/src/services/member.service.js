@@ -1,4 +1,6 @@
 import pool from "../config/db.js";
+import { notificationService } from "./notification.service.js";
+import { NOTIFICATION_TYPES } from "../constants/notification.constants.js";
 
  const getStartupMembers = async (startupId, founderId) => {
 
@@ -85,7 +87,7 @@ const removeProjectMember = async (
     // Check startup exists
     const startup = await pool.query(
         `
-        SELECT founder_id
+        SELECT founder_id, title
         FROM startups
         WHERE id = $1
         `,
@@ -121,7 +123,6 @@ const removeProjectMember = async (
     }
 
     // Remove member
-// Remove member
     await pool.query(
     `
         UPDATE applications
@@ -148,6 +149,14 @@ const removeProjectMember = async (
         developerId,
     ]
 );
+
+    await notificationService.createNotification(
+        developerId,
+        "Removed From Project",
+        `You have been removed from "${startup.rows[0].title}".`,
+        NOTIFICATION_TYPES.PROJECT,
+        startupId
+    );
 
 return true;
 };

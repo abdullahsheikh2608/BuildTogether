@@ -1,6 +1,7 @@
 import pool from "../config/db.js";
 import { notificationService } from "./notification.service.js";
 import { NOTIFICATION_TYPES } from "../constants/notification.constants.js";
+import { TASK_STATUS } from "../constants/task.constant.js";
 
 const taskService = {
     createTask: async (taskData, founderId) => {
@@ -111,18 +112,22 @@ const taskService = {
         const result = await pool.query(
             `
             SELECT
-                id,
-                startup_id,
-                assigned_to,
-                title,
-                description,
-                priority,
-                status,
-                deadline,
-                created_at
-            FROM tasks
-            WHERE startup_id = $1
-            ORDER BY created_at DESC
+                t.id,
+                t.startup_id,
+                t.assigned_to,
+                t.title,
+                t.description,
+                t.priority,
+                t.status,
+                t.deadline,
+                t.created_at,
+                p.full_name AS developer_name,
+                p.username AS developer_username
+            FROM tasks t
+            LEFT JOIN profiles p
+                ON p.user_id = t.assigned_to
+            WHERE t.startup_id = $1
+            ORDER BY t.created_at DESC
             `,
             [startupId]
         );
@@ -259,9 +264,16 @@ const taskService = {
     updateTaskStatus: async (taskId, developerId, status) => {
         const task = await pool.query(
             `
-            SELECT id, assigned_to
-            FROM tasks
-            WHERE id = $1
+            SELECT
+                t.id,
+                t.assigned_to,
+                t.title,
+                t.status,
+                t.startup_id,
+                s.founder_id
+            FROM tasks t
+            JOIN startups s ON t.startup_id = s.id
+            WHERE t.id = $1
             `,
             [taskId]
         );
@@ -292,6 +304,19 @@ const taskService = {
             `,
             [status, taskId]
         );
+
+        if (
+            status === TASK_STATUS.DONE &&
+            task.rows[0].status !== TASK_STATUS.DONE
+        ) {
+            await notificationService.createNotification(
+                task.rows[0].founder_id,
+                "Task Completed",
+                `The task "${task.rows[0].title}" has been marked as done.`,
+                NOTIFICATION_TYPES.TASK,
+                taskId
+            );
+        }
 
         return result.rows[0];
     },
