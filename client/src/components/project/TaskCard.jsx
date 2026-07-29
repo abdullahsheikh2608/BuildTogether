@@ -2,6 +2,18 @@ import { useState } from "react";
 import { updateTaskStatus } from "../../services/task.service.js";
 import { useToast } from "../../hooks/useToast.js";
 
+const STATUS_LABELS = {
+    todo: "To Do",
+    in_progress: "In Progress",
+    done: "Completed",
+};
+
+const STATUS_STYLES = {
+    todo: "bg-blueprint-800 text-paper-dim",
+    in_progress: "bg-amber-500/20 text-amber-300",
+    done: "bg-emerald-500/20 text-emerald-300",
+};
+
 export default function TaskCard({
     task,
     isDeveloper = false,
@@ -64,12 +76,30 @@ export default function TaskCard({
 
                 {!isDeveloper ? (
 
-                    <button
-                        onClick={() => onDelete(task)}
-                        className="rounded bg-red-500 px-3 py-2 text-sm font-semibold"
-                    >
-                        Delete
-                    </button>
+                    <div className="flex flex-col items-end gap-2">
+
+                        <span
+                            className={`rounded px-3 py-1 text-xs font-semibold ${
+                                STATUS_STYLES[task.status] ?? STATUS_STYLES.todo
+                            }`}
+                        >
+                            {STATUS_LABELS[task.status] ?? task.status}
+                        </span>
+
+                        {task.developer_name && (
+                            <span className="text-xs text-paper-dim">
+                                Assigned to: {task.developer_name}
+                            </span>
+                        )}
+
+                        <button
+                            onClick={() => onDelete(task)}
+                            className="rounded bg-red-500 px-3 py-2 text-sm font-semibold"
+                        >
+                            Delete
+                        </button>
+
+                    </div>
 
                 ) : (
 

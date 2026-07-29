@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
 import Button from '../../components/ui/Button.jsx';
+import Input from '../../components/ui/Input.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import ConfirmDialog from '../../components/common/ConfirmDialog.jsx';
 import StartupCard from '../../components/startup/StartupCard.jsx';
@@ -28,6 +30,7 @@ export default function FounderDashboard() {
   const [formOpen, setFormOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     loadStartups();
@@ -44,6 +47,16 @@ export default function FounderDashboard() {
   };
 
   const startupList = Array.isArray(startups) ? startups : [];
+
+  const filteredStartups = startupList.filter((startup) => {
+    const term = search.trim().toLowerCase();
+    if (!term) return true;
+
+    return (
+      startup.title?.toLowerCase().includes(term) ||
+      startup.tagline?.toLowerCase().includes(term)
+    );
+  });
 
   const handleFormSubmit = async (payload) => {
     if (selectedStartup) {
@@ -92,6 +105,21 @@ export default function FounderDashboard() {
         </p>
       )}
 
+      {startupList.length > 0 && (
+        <div className="relative mt-6 max-w-sm">
+          <Search
+            size={16}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-paper-faint"
+          />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search your startups..."
+            className="[&>input]:pl-9"
+          />
+        </div>
+      )}
+
       <div className="mt-8">
         {loading ? (
           <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading…</p>
@@ -101,9 +129,14 @@ export default function FounderDashboard() {
             body="Draft your first blueprint — add the tech stack and roles you need, and developers can start applying."
             action={<Button onClick={openCreate}>Post your first startup</Button>}
           />
+        ) : filteredStartups.length === 0 ? (
+          <EmptyState
+            title="No matching startups"
+            body={`No startups match "${search}". Try a different search term.`}
+          />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2">
-            {startupList.map((startup) => (
+            {filteredStartups.map((startup) => (
               <StartupCard
                 key={startup.id}
                 startup={startup}
