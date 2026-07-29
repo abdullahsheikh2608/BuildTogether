@@ -89,7 +89,7 @@ model startups {
 }
 
 model tasks {
-  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   startup_id  String        @db.Uuid
   assigned_to String?       @db.Uuid
   title       String        @db.VarChar(255)
