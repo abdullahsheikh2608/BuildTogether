@@ -76,9 +76,24 @@ export const getStartupApplications = async (req, res, next) => {
 
         const { startupId } = req.params;
 
+        const {
+            search,
+            status,
+            page,
+            limit,
+            sortBy,
+            order,
+        } = req.query;
+
         const applications = await getStartupApplicationsService(
             startupId,
-            req.user.id
+            req.user.id,
+            search,
+            status,
+            page,
+            limit,
+            sortBy,
+            order
         );
 
         if (applications === "STARTUP_NOT_FOUND") {
@@ -92,13 +107,6 @@ export const getStartupApplications = async (req, res, next) => {
             return res.status(403).json({
                 success: false,
                 message: APPLICATION_MESSAGES.FORBIDDEN_STARTUP_ACCESS,
-            });
-        }
-
-        if (applications.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: APPLICATION_MESSAGES.NO_APPLICATIONS_FOUND,
             });
         }
 

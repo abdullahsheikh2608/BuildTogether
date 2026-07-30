@@ -169,7 +169,13 @@ export const getMyApplications = async (
 };
 export const getStartupApplications = async (
     startupId,
-    founderId
+    founderId,
+    search = "",
+    status = "",
+    page = 1,
+    limit = 10,
+    sortBy = "applied_at",
+    order = "DESC"
 ) => {
 
     // Check startup exists
@@ -191,9 +197,30 @@ export const getStartupApplications = async (
         return "FORBIDDEN";
     }
 
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    const offset = (pageNumber - 1) * limitNumber;
+
+    const allowedSortFields = [
+        "applied_at"
+    ];
+
+    const allowedOrder = [
+        "ASC",
+        "DESC"
+    ];
+
+    const sortField = allowedSortFields.includes(sortBy)
+        ? sortBy
+        : "applied_at";
+
+    const sortDirection = allowedOrder.includes(order.toUpperCase())
+        ? order.toUpperCase()
+        : "DESC";
+
     // Fetch applications
-    const result = await pool.query(
-        `
+    let query = `
         SELECT
             a.id,
             a.status,
@@ -215,11 +242,40 @@ export const getStartupApplications = async (
         ON p.user_id = u.id
 
         WHERE a.startup_id = $1
+    `;
 
-        ORDER BY a.applied_at DESC
-        `,
-        [startupId]
-    );
+    const values = [startupId];
+
+    if (search) {
+        values.push(`%${search}%`);
+
+        query += `
+            AND (
+                p.full_name ILIKE $${values.length}
+                OR p.username ILIKE $${values.length}
+                OR u.email ILIKE $${values.length}
+            )
+        `;
+    }
+
+    if (status) {
+        values.push(status);
+
+        query += `
+            AND a.status = $${values.length}
+        `;
+    }
+
+    query += `
+        ORDER BY a.${sortField} ${sortDirection}
+        LIMIT $${values.length + 1}
+        OFFSET $${values.length + 2}
+    `;
+
+    values.push(limitNumber);
+    values.push(offset);
+
+    const result = await pool.query(query, values);
 
     return result.rows;
 };
