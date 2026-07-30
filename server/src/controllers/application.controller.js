@@ -43,7 +43,24 @@ export const createApplication = async (req, res, next) => {
 };
 export const getMyApplications = async (req, res, next) => {
     try {
-        const applications = await getMyApplicationsService(req.user.id);
+        const {
+            search,
+            status,
+            page,
+            limit,
+            sortBy,
+            order,
+        } = req.query;
+
+        const applications = await getMyApplicationsService(
+            req.user.id,
+            search,
+            status,
+            page,
+            limit,
+            sortBy,
+            order
+        );
 
         return res.status(200).json({
             success: true,

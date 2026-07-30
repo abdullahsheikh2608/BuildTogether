@@ -82,10 +82,39 @@ export const createApplication = async (applicationData, developerId) => {
     return result.rows[0];
 };
 
-export const getMyApplications = async (developerId) => {
+export const getMyApplications = async (
+    developerId,
+    search = "",
+    status = "",
+    page = 1,
+    limit = 10,
+    sortBy = "applied_at",
+    order = "DESC"
+) => {
 
-    const result = await pool.query(
-        `
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    const offset = (pageNumber - 1) * limitNumber;
+
+    const allowedSortFields = [
+        "applied_at"
+    ];
+
+    const allowedOrder = [
+        "ASC",
+        "DESC"
+    ];
+
+    const sortField = allowedSortFields.includes(sortBy)
+        ? sortBy
+        : "applied_at";
+
+    const sortDirection = allowedOrder.includes(order.toUpperCase())
+        ? order.toUpperCase()
+        : "DESC";
+
+    let query = `
         SELECT
             a.id,
             a.status,
@@ -99,14 +128,42 @@ export const getMyApplications = async (developerId) => {
         FROM applications a
 
         LEFT JOIN startups s
-        ON a.startup_id = s.id
+            ON a.startup_id = s.id
 
         WHERE a.developer_id = $1
+    `;
 
-        ORDER BY a.applied_at DESC
-        `,
-        [developerId]
-    );
+    const values = [developerId];
+
+    if (search) {
+        values.push(`%${search}%`);
+
+        query += `
+            AND (
+                s.title ILIKE $${values.length}
+                OR s.tagline ILIKE $${values.length}
+            )
+        `;
+    }
+
+    if (status) {
+        values.push(status);
+
+        query += `
+            AND a.status = $${values.length}
+        `;
+    }
+
+    query += `
+        ORDER BY a.${sortField} ${sortDirection}
+        LIMIT $${values.length + 1}
+        OFFSET $${values.length + 2}
+    `;
+
+    values.push(limitNumber);
+    values.push(offset);
+
+    const result = await pool.query(query, values);
 
     return result.rows;
 };
