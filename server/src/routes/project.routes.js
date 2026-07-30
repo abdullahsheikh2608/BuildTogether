@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import projectController from "../controllers/project.controller.js";
+import { memberController } from "../controllers/member.controller.js";
 
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorizeRole } from "../middlewares/role.middleware.js";
@@ -8,6 +9,13 @@ import { authorizeRole } from "../middlewares/role.middleware.js";
 import projectValidator from "../validators/project.validator.js";
 
 const router = Router();
+
+router.get(
+    "/",
+    authenticate,
+    authorizeRole("developer"),
+    memberController.getMyProjects
+);
 
 router.get(
     "/founder",

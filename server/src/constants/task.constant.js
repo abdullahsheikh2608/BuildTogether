@@ -7,7 +7,7 @@ export const TASK_PRIORITY = {
 export const TASK_STATUS = {
     TODO: "todo",
     IN_PROGRESS: "in_progress",
-    COMPLETED: "completed",
+    DONE: "done",
 };
 
 export const TASK_LIMITS = {

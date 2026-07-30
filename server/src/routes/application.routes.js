@@ -26,7 +26,7 @@ const router = Router();
 
 // Get My Applications (Developer only)
 router.get(
-    "/me",
+    "/",
     authenticate,
     authorizeRole("developer"),
     getMyApplications

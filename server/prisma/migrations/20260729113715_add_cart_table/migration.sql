@@ -1,0 +1,9 @@
+
+-- CreateTable
+CREATE TABLE "cart" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "cart_pkey" PRIMARY KEY ("id")
+);

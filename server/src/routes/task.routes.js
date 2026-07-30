@@ -25,7 +25,7 @@ router.get(
 );
 
 router.get(
-    "/me",
+    "/",
     authenticate,
     authorizeRole("developer"),
     taskController.getMyTasks
@@ -56,12 +56,5 @@ router.delete(
     taskValidator.validateTaskId,
     taskController.deleteTask
 );
-
-router.get("/", (req, res) => {
-    res.json({
-        success: true,
-        message: "Task Routes Working",
-    });
-});
 
 export default router;
