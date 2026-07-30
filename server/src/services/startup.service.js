@@ -50,29 +50,42 @@ export const createStartup = async (startupData, founderId) => {
     return result.rows[0];
 };
 
-export const getAllStartups = async (userId = null, role = null) => {
-    if (role === 'founder') {
-        const result = await pool.query(`
-            SELECT
-                id,
-                founder_id,
-                title,
-                tagline,
-                description,
-                tech_stack,
-                required_roles,
-                status,
-                created_at,
-                updated_at
-            FROM startups
-            WHERE founder_id = $1
-            ORDER BY created_at DESC
-        `, [userId]);
+export const getAllStartups = async (
+    userId = null,
+    role = null,
+    search = "",
+    status = "",
+    page = 1,
+    limit = 10,
+    sortBy = "created_at",
+    order = "DESC"
+) => {
 
-        return result.rows;
-    }
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
 
-    const result = await pool.query(`
+    const offset = (pageNumber - 1) * limitNumber;
+
+    const allowedSortFields = [
+        "title",
+        "created_at",
+        "updated_at"
+    ];
+
+    const allowedOrder = [
+        "ASC",
+        "DESC"
+    ];
+
+    const sortField = allowedSortFields.includes(sortBy)
+        ? sortBy
+        : "created_at";
+
+    const sortDirection = allowedOrder.includes(order.toUpperCase())
+        ? order.toUpperCase()
+        : "DESC";
+
+    let query = `
         SELECT
             id,
             founder_id,
@@ -85,8 +98,45 @@ export const getAllStartups = async (userId = null, role = null) => {
             created_at,
             updated_at
         FROM startups
-        ORDER BY created_at DESC
-    `);
+    `;
+
+    const conditions = [];
+    const values = [];
+
+    if (role === "founder") {
+        values.push(userId);
+        conditions.push(`founder_id = $${values.length}`);
+    }
+
+    if (search) {
+        values.push(`%${search}%`);
+        conditions.push(`
+            (
+                title ILIKE $${values.length}
+                OR tagline ILIKE $${values.length}
+            )
+        `);
+    }
+
+    if (status) {
+        values.push(status);
+        conditions.push(`status = $${values.length}`);
+    }
+
+    if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(" AND ")}`;
+    }
+
+    query += `
+        ORDER BY ${sortField} ${sortDirection}
+        LIMIT $${values.length + 1}
+        OFFSET $${values.length + 2}
+    `;
+
+    values.push(limitNumber);
+    values.push(offset);
+
+    const result = await pool.query(query, values);
 
     return result.rows;
 };

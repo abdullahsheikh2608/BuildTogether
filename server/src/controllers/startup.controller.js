@@ -24,7 +24,25 @@ export const createStartup = async (req, res, next) => {
 
 export const getAllStartups = async (req, res, next) => {
     try {
-        const startups = await getAllStartupsService(req.user.id, req.user.role);
+        const {
+        search,
+        status,
+        page,
+        limit,
+        sortBy,
+        order
+    } = req.query;
+
+        const startups = await getAllStartupsService(
+        req.user.id,
+        req.user.role,
+        search,
+        status,
+        page,
+        limit,
+        sortBy,
+        order
+    );
 
         return res.status(200).json({
             success: true,
