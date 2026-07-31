@@ -1,6 +1,7 @@
 export const NOTIFICATION_TYPES = {
     APPLICATION: "application",
     TASK: "task",
+    DEADLINE: "deadline",
     PROJECT: "project",
     SYSTEM: "system",
 };
