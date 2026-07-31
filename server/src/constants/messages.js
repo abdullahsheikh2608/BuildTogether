@@ -203,3 +203,7 @@ export const PROJECT_MESSAGES = {
 
     NO_PROJECTS_FOUND: "No projects found",
 };
+
+export const DASHBOARD_MESSAGES = {
+    FETCH_SUCCESSFULLY: "Dashboard analytics fetched successfully",
+};

@@ -9,6 +9,8 @@ import taskRoutes from "./task.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import memberRoutes from "./member.routes.js";
 
+import dashboardRoutes from "./dashboard.routes.js";
+
 const router = Router();
 
 router.use("/auth", authRoutes);
@@ -19,5 +21,6 @@ router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/members", memberRoutes);
+router.use("/dashboard", dashboardRoutes);
 
 export default router;
