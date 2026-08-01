@@ -91,7 +91,7 @@ const taskService = {
         return result.rows[0];
     },
 
-    getStartupTasks: async (startupId, founderId) => {
+    getStartupTasks: async (startupId, requesterId) => {
         const startup = await pool.query(
             `
             SELECT id, founder_id
@@ -105,8 +105,24 @@ const taskService = {
             return "STARTUP_NOT_FOUND";
         }
 
-        if (startup.rows[0].founder_id !== founderId) {
-            return "FORBIDDEN";
+        const isFounder = startup.rows[0].founder_id === requesterId;
+
+        if (!isFounder) {
+
+            const membership = await pool.query(
+                `
+                SELECT id
+                FROM applications
+                WHERE startup_id = $1
+                AND developer_id = $2
+                AND status = 'accepted'
+                `,
+                [startupId, requesterId]
+            );
+
+            if (membership.rows.length === 0) {
+                return "FORBIDDEN";
+            }
         }
 
         const result = await pool.query(
@@ -139,18 +155,24 @@ const taskService = {
         const result = await pool.query(
             `
             SELECT
-                id,
-                startup_id,
-                assigned_to,
-                title,
-                description,
-                priority,
-                status,
-                deadline,
-                created_at
-            FROM tasks
-            WHERE assigned_to = $1
-            ORDER BY created_at DESC
+                t.id,
+                t.startup_id,
+                t.assigned_to,
+                t.title,
+                t.description,
+                t.priority,
+                t.status,
+                t.deadline,
+                t.created_at,
+                s.title AS startup_title
+
+            FROM tasks t
+
+            INNER JOIN startups s
+                ON t.startup_id = s.id
+
+            WHERE t.assigned_to = $1
+            ORDER BY t.created_at DESC
             `,
             [developerId]
         );

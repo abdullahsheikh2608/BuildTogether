@@ -10,6 +10,7 @@ import notificationRoutes from "./notification.routes.js";
 import memberRoutes from "./member.routes.js";
 
 import dashboardRoutes from "./dashboard.routes.js";
+import chatRoutes from "./chat.routes.js";
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use("/tasks", taskRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/members", memberRoutes);
 router.use("/dashboard", dashboardRoutes);
+router.use("/chat", chatRoutes);
 
 export default router;

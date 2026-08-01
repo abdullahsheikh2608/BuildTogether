@@ -2,7 +2,7 @@ import pool from "../config/db.js";
 import { notificationService } from "./notification.service.js";
 import { NOTIFICATION_TYPES } from "../constants/notification.constants.js";
 
- const getStartupMembers = async (startupId, founderId) => {
+ const getStartupMembers = async (startupId, requesterId) => {
 
     // Check startup exists
     const startup = await pool.query(
@@ -18,9 +18,26 @@ import { NOTIFICATION_TYPES } from "../constants/notification.constants.js";
         return "STARTUP_NOT_FOUND";
     }
 
-    // Check ownership
-    if (startup.rows[0].founder_id !== founderId) {
-        return "FORBIDDEN";
+    const isFounder = startup.rows[0].founder_id === requesterId;
+
+    // Founders always have access. Developers only if they're an
+    // accepted member of this specific startup.
+    if (!isFounder) {
+
+        const membership = await pool.query(
+            `
+            SELECT id
+            FROM applications
+            WHERE startup_id = $1
+            AND developer_id = $2
+            AND status = 'accepted'
+            `,
+            [startupId, requesterId]
+        );
+
+        if (membership.rows.length === 0) {
+            return "FORBIDDEN";
+        }
     }
 
     // Fetch accepted members
@@ -60,6 +77,7 @@ const getMyProjects = async (developerId) => {
             s.id,
             s.title,
             s.tagline,
+            a.status,
             a.applied_at AS joined_at
 
         FROM applications a
@@ -68,7 +86,7 @@ const getMyProjects = async (developerId) => {
             ON a.startup_id = s.id
 
         WHERE a.developer_id = $1
-        AND a.status = 'accepted'
+        AND a.status != 'removed'
 
         ORDER BY a.applied_at DESC
         `,
