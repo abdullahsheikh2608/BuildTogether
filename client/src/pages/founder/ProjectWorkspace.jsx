@@ -8,6 +8,7 @@ import TaskCard from "../../components/project/TaskCard.jsx";
 import AssignTaskModal from "../../components/startup/AssignTaskModal.jsx";
 
 import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
+import ChatBox from "../../components/chat/ChatBox.jsx";
 
 import { createTask, deleteTask } from "../../services/task.service.js";
 import { removeMember } from "../../services/member.service.js";
@@ -258,6 +259,10 @@ export default function ProjectWorkspace() {
                 </div>
 
             </div>
+
+            {/* Team Chat */}
+
+            <ChatBox startupId={startupId} />
 
             <AssignTaskModal
                 key={assignModalOpen ? "open" : "closed"}

@@ -1,9 +1,9 @@
 import api from '../api/axios.js';
 
-export const login = (payload) => api.post('/auth/login', payload).then((res) => res.data.data);
+export const login = (payload) => api.post('/auth/login', payload).then((response) => response.data.data);
 export const register = (payload) =>
 
-  api.post('/auth/register', payload).then((res) => res.data.data);
+  api.post('/auth/register', payload).then((response) => response.data.data);
 
 let getMePromise = null;
 let cachedMe = null;
@@ -12,8 +12,8 @@ export const getMe = () => {
   if (getMePromise) return getMePromise;
   getMePromise = api
     .get('/auth/me')
-    .then((res) => {
-      cachedMe = res.data.data;
+    .then((response) => {
+      cachedMe = response.data.data;
       return cachedMe;
     })
     .catch((error) => {
@@ -31,4 +31,4 @@ export const clearMeCache = () => {
 };
 export const updateProfile = (payload) =>
 
-  api.put('/profiles/me', payload).then((res) => res.data.data);
+  api.put('/profiles/me', payload).then((response) => response.data.data);

@@ -1,56 +1,76 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import DeveloperStartupCard from '../../components/startup/DeveloperStartupCard.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
+import Button from '../../components/ui/Button.jsx';
 import { useStartup } from '../../hooks/useStartup.js';
+
+const SEARCH_DEBOUNCE_MS = 500;
+const DEFAULT_LIMIT = 10;
+
+const SORT_OPTIONS = [
+  { value: 'created_at:DESC', label: 'Latest First' },
+  { value: 'created_at:ASC', label: 'Oldest First' },
+  { value: 'title:ASC', label: 'Title A-Z' },
+  { value: 'title:DESC', label: 'Title Z-A' },
+];
 
 export default function BrowseStartups() {
   const { startups, loading, error, loadStartups } = useStartup();
 
+  // Raw text as typed by the user; debounced into `search` before hitting the API.
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [techFilter, setTechFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
 
+  const [status, setStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [order, setOrder] = useState('DESC');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(DEFAULT_LIMIT);
+
+  // Debounce the search input by 500ms, then reset back to page 1.
   useEffect(() => {
-    loadStartups();
-  }, [loadStartups]);
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+    setPage(1);
+  };
+
+  const handleSortChange = (e) => {
+    const [nextSortBy, nextOrder] = e.target.value.split(':');
+    setSortBy(nextSortBy);
+    setOrder(nextOrder);
+    setPage(1);
+  };
+
+  // Refetch from the backend whenever any of the query dependencies change.
+  useEffect(() => {
+    loadStartups({
+      search,
+      status: status === 'all' ? '' : status,
+      sortBy,
+      order,
+      page,
+      limit,
+    });
+  }, [search, status, sortBy, order, page, limit, loadStartups]);
 
   const startupList = Array.isArray(startups) ? startups : [];
+  const hasActiveFilters = search.trim() !== '' || status !== 'all';
 
-  const techOptions = useMemo(() => {
-    const techs = new Set();
+  const isFirstPage = page <= 1;
+  const isLastPage = startupList.length < limit;
 
-    startupList.forEach((startup) => {
-      (startup.tech_stack ?? []).forEach((tech) => techs.add(tech));
-    });
-
-    return Array.from(techs).sort((a, b) => a.localeCompare(b));
-  }, [startupList]);
-
-  const filteredStartups = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return startupList.filter((startup) => {
-      const matchesSearch =
-        !query ||
-        startup.title?.toLowerCase().includes(query) ||
-        startup.tagline?.toLowerCase().includes(query) ||
-        startup.description?.toLowerCase().includes(query);
-
-      const matchesTech =
-        techFilter === 'all' ||
-        (startup.tech_stack ?? []).includes(techFilter);
-
-      const matchesStatus =
-        statusFilter === 'all' || startup.status === statusFilter;
-
-      return matchesSearch && matchesTech && matchesStatus;
-    });
-  }, [startupList, search, techFilter, statusFilter]);
-
-  const hasActiveFilters =
-    search.trim() !== '' || techFilter !== 'all' || statusFilter !== 'all';
+  const goToPreviousPage = () => setPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () => setPage((prev) => prev + 1);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -65,31 +85,12 @@ export default function BrowseStartups() {
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           <Input
             id="startup-search"
-            placeholder="Search by title, tagline, description..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by title or tagline..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
 
-          <Select
-            id="tech-filter"
-            value={techFilter}
-            onChange={(e) => setTechFilter(e.target.value)}
-          >
-            <option value="all" className="bg-blueprint-900">
-              All tech stacks
-            </option>
-            {techOptions.map((tech) => (
-              <option key={tech} value={tech} className="bg-blueprint-900">
-                {tech}
-              </option>
-            ))}
-          </Select>
-
-          <Select
-            id="status-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
+          <Select id="status-filter" value={status} onChange={handleStatusChange}>
             <option value="all" className="bg-blueprint-900">
               All statuses
             </option>
@@ -100,17 +101,24 @@ export default function BrowseStartups() {
               Closed
             </option>
           </Select>
+
+          <Select
+            id="sort-filter"
+            value={`${sortBy}:${order}`}
+            onChange={handleSortChange}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value} className="bg-blueprint-900">
+                {option.label}
+              </option>
+            ))}
+          </Select>
         </div>
 
         <div className="mt-8">
           {loading ? (
             <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading...</p>
           ) : startupList.length === 0 ? (
-            <EmptyState
-              title="No startups available"
-              body="There are currently no startups accepting developers."
-            />
-          ) : filteredStartups.length === 0 ? (
             <EmptyState
               title="No matching startups"
               body={
@@ -121,12 +129,36 @@ export default function BrowseStartups() {
             />
           ) : (
             <div className="grid gap-5 sm:grid-cols-2">
-              {filteredStartups.map((startup) => (
+              {startupList.map((startup) => (
                 <DeveloperStartupCard key={startup.id} startup={startup} />
               ))}
             </div>
           )}
         </div>
+
+        {!loading && startupList.length > 0 && (
+          <div className="mt-8 flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={goToPreviousPage}
+              disabled={isFirstPage}
+            >
+              Previous
+            </Button>
+
+            <span className="font-mono text-xs uppercase tracking-widest text-paper-faint">
+              Page {page}
+            </span>
+
+            <Button
+              variant="outline"
+              onClick={goToNextPage}
+              disabled={isLastPage}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );

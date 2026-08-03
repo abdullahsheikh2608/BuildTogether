@@ -1,14 +1,15 @@
 import api from '../api/axios.js';
 
 export const applyToStartup = (payload) =>
-  api.post('/applications', payload).then((res) => res.data.data);
+  api.post('/applications', payload).then((response) => response.data.data);
 
-export const getMyApplications = () => api.get('/applications').then((res) => res.data.data);
+export const getMyApplications = (params = {}) =>
+  api.get('/applications', { params }).then((response) => response.data.data);
 
-export const getStartupApplications = (startupId) =>
+export const getStartupApplications = (startupId, params = {}) =>
   api
-    .get(`/applications/startup/${startupId}`)
-    .then((res) => res.data.data)
+    .get(`/applications/startup/${startupId}`, { params })
+    .then((response) => response.data.data)
     .catch((err) => {
       // Agar startup ki koi application nahi hai
       // backend 404 bhejta hai, us case mein empty array return karo
@@ -20,4 +21,4 @@ export const getStartupApplications = (startupId) =>
     });
 
 export const updateApplicationStatus = (id, status) =>
-  api.patch(`/applications/${id}`, { status }).then((res) => res.data.data);
+  api.patch(`/applications/${id}`, { status }).then((response) => response.data.data);

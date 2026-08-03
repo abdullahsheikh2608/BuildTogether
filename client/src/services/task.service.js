@@ -1,23 +1,23 @@
 import api from "../api/axios";
 
 export const getStartupTasks = async (startupId) => {
-    const { data } = await api.get(`/tasks/startup/${startupId}`);
-    return data.data;
+    const response = await api.get(`/tasks/startup/${startupId}`);
+    return response.data.data;
 };
 
 export const getMyTasks = async () => {
-    const { data } = await api.get("/tasks");
-    return data.data;
+    const response = await api.get("/tasks");
+    return response.data.data;
 };
 
 export const createTask = async (payload) => {
-    const { data } = await api.post("/tasks", payload);
-    return data.data;
+    const response = await api.post("/tasks", payload);
+    return response.data.data;
 };
 
 export const updateTask = async (taskId, payload) => {
-    const { data } = await api.patch(`/tasks/${taskId}`, payload);
-    return data.data;
+    const response = await api.patch(`/tasks/${taskId}`, payload);
+    return response.data.data;
 };
 
 export const deleteTask = async (taskId) => {
@@ -25,9 +25,9 @@ export const deleteTask = async (taskId) => {
 };
 
 export const updateTaskStatus = async (taskId, status) => {
-    const { data } = await api.patch(`/tasks/${taskId}/status`, {
+    const response = await api.patch(`/tasks/${taskId}/status`, {
         status,
     });
 
-    return data.data;
+    return response.data.data;
 };

@@ -12,9 +12,9 @@ export function DeveloperProjectsProvider({ children }) {
             setLoading(true);
             setError("");
 
-            const response = await getMyProjects();
+            const projectsData = await getMyProjects();
 
-            setProjects(Array.isArray(response.data) ? response.data : []);
+            setProjects(Array.isArray(projectsData) ? projectsData : []);
         } catch (err) {
             setError(
                 err?.response?.data?.message ??

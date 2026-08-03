@@ -8,12 +8,12 @@ export function StartupProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const loadStartups = useCallback(async () => {
+  const loadStartups = useCallback(async (params = {}) => {
     setLoading(true);
     setError("");
 
     try {
-      const data = await getAllStartups();
+      const data = await getAllStartups(params);
       const list = Array.isArray(data) ? data : [];
       setStartups(list);
       return list;
