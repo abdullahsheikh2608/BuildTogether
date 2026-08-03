@@ -21,12 +21,14 @@ export default function MemberCard({
                     </span>
                 </div>
 
-                <Button
-                    variant="danger"
-                    onClick={() => onRemove(member)}
-                >
-                    Remove
-                </Button>
+                {onRemove && (
+                    <Button
+                        variant="danger"
+                        onClick={() => onRemove(member)}
+                    >
+                        Remove
+                    </Button>
+                )}
             </div>
         </div>
     );

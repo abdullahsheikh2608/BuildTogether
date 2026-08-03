@@ -8,6 +8,7 @@ import { StartupProvider } from "./context/StartupContext.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import { DeveloperProjectsProvider } from "./context/DeveloperProjectsContext.jsx";
 import { NotificationsProvider } from "./context/NotificationsContext.jsx";
+import { SocketProvider } from "./context/SocketContext.jsx";
 // One-time migration: remove legacy `bt_user` left in browsers by older app versions
 try {
   localStorage.removeItem("bt_user");
@@ -18,15 +19,17 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <StartupProvider>
-          <ToastProvider>
-            <NotificationsProvider>
-              <DeveloperProjectsProvider>
-                <App />
-              </DeveloperProjectsProvider>
-            </NotificationsProvider>
-          </ToastProvider>
-        </StartupProvider>
+        <SocketProvider>
+          <StartupProvider>
+            <ToastProvider>
+              <NotificationsProvider>
+                <DeveloperProjectsProvider>
+                  <App />
+                </DeveloperProjectsProvider>
+              </NotificationsProvider>
+            </ToastProvider>
+          </StartupProvider>
+        </SocketProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>

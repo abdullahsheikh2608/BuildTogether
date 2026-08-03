@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
-import { LayoutDashboard, Rocket, FileText, User, LogOut, PanelLeftClose } from 'lucide-react';
+import { LayoutDashboard, Rocket, FileText, User, LogOut, PanelLeftClose, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 import LogoutModal from '../ui/LogoutModal.jsx';
 
@@ -32,6 +32,11 @@ export default function Sidebar({ collapsed, onToggle }) {
       name: 'Dashboard',
       path: '/founder',
       icon: LayoutDashboard,
+    },
+    {
+      name: 'Analytics',
+      path: '/founder/analytics',
+      icon: BarChart3,
     },
   ];
 

@@ -1,31 +1,104 @@
 import { useEffect, useState } from 'react';
 import EmptyState from '../../components/ui/EmptyState.jsx';
+import Input from '../../components/ui/Input.jsx';
+import Select from '../../components/ui/Select.jsx';
+import Button from '../../components/ui/Button.jsx';
 
 import { getMyApplications } from '../../services/application.service.js';
+
+const SEARCH_DEBOUNCE_MS = 500;
+const DEFAULT_LIMIT = 10;
+
+const SORT_OPTIONS = [
+  { value: 'applied_at:DESC', label: 'Latest First' },
+  { value: 'applied_at:ASC', label: 'Oldest First' },
+];
 
 export default function MyApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Raw text as typed by the user; debounced into `search` before hitting the API.
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+
+  const [status, setStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('applied_at');
+  const [order, setOrder] = useState('DESC');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(DEFAULT_LIMIT);
+
+  // Debounce the search input by 500ms, then reset back to page 1.
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+    setPage(1);
+  };
+
+  const handleSortChange = (e) => {
+    const [nextSortBy, nextOrder] = e.target.value.split(':');
+    setSortBy(nextSortBy);
+    setOrder(nextOrder);
+    setPage(1);
+  };
+
+  // Refetch from the backend whenever any of the query dependencies change.
+  useEffect(() => {
+    let cancelled = false;
+
     const loadApplications = async () => {
+      setLoading(true);
+      setError('');
+
       try {
-        const data = await getMyApplications();
-        setApplications(data);
+        const data = await getMyApplications({
+          search,
+          status: status === 'all' ? '' : status,
+          sortBy,
+          order,
+          page,
+          limit,
+        });
+
+        if (!cancelled) {
+          setApplications(Array.isArray(data) ? data : []);
+        }
       } catch {
-        setError('Unable to load your applications.');
+        if (!cancelled) {
+          setError('Unable to load your applications.');
+          setApplications([]);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     loadApplications();
-  }, []);
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
+    return () => {
+      cancelled = true;
+    };
+  }, [search, status, sortBy, order, page, limit]);
+
+  const applicationList = Array.isArray(applications) ? applications : [];
+  const hasActiveFilters = search.trim() !== '' || status !== 'all';
+
+  const isFirstPage = page <= 1;
+  const isLastPage = applicationList.length < limit;
+
+  const goToPreviousPage = () => setPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () => setPage((prev) => prev + 1);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -44,12 +117,57 @@ export default function MyApplications() {
           </p>
         )}
 
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <Input
+            id="application-search"
+            placeholder="Search by title or tagline..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+
+          <Select id="application-status-filter" value={status} onChange={handleStatusChange}>
+            <option value="all" className="bg-blueprint-900">
+              All statuses
+            </option>
+            <option value="pending" className="bg-blueprint-900">
+              Pending
+            </option>
+            <option value="accepted" className="bg-blueprint-900">
+              Accepted
+            </option>
+            <option value="rejected" className="bg-blueprint-900">
+              Rejected
+            </option>
+          </Select>
+
+          <Select
+            id="application-sort-filter"
+            value={`${sortBy}:${order}`}
+            onChange={handleSortChange}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value} className="bg-blueprint-900">
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+
         <div className="mt-8">
-          {applications.length === 0 ? (
-            <EmptyState title="No Applications" body="You haven't applied to any startup yet." />
+          {loading ? (
+            <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading...</p>
+          ) : applicationList.length === 0 ? (
+            <EmptyState
+              title="No Applications"
+              body={
+                hasActiveFilters
+                  ? 'Try a different search term or clear your filters.'
+                  : "You haven't applied to any startup yet."
+              }
+            />
           ) : (
             <div className="space-y-5">
-              {applications.map((application) => (
+              {applicationList.map((application) => (
                 <div
                   key={application.id}
                   className="rounded-xl border border-slate-700 bg-slate-900 p-5"
@@ -90,6 +208,22 @@ export default function MyApplications() {
             </div>
           )}
         </div>
+
+        {!loading && applicationList.length > 0 && (
+          <div className="mt-8 flex items-center justify-between">
+            <Button variant="outline" onClick={goToPreviousPage} disabled={isFirstPage}>
+              Previous
+            </Button>
+
+            <span className="font-mono text-xs uppercase tracking-widest text-paper-faint">
+              Page {page}
+            </span>
+
+            <Button variant="outline" onClick={goToNextPage} disabled={isLastPage}>
+              Next
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );

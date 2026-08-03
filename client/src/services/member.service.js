@@ -1,19 +1,19 @@
 import api from "../api/axios";
 
 export const getStartupMembers = async (startupId) => {
-    const { data } = await api.get(`/members/startups/${startupId}/members`);
-    return data.data;
+    const response = await api.get(`/members/startups/${startupId}/members`);
+    return response.data.data;
 };
 
 export const getMyProjects = async () => {
-    const { data } = await api.get("/members");
-    return data.data;
+    const response = await api.get("/members");
+    return response.data.data;
 };
 
 export const removeMember = async (startupId, developerId) => {
-    const { data } = await api.delete(
+    const response = await api.delete(
         `/members/startups/${startupId}/members/${developerId}`
     );
 
-    return data.data;
+    return response.data.data;
 };

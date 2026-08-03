@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import Button from '../../components/ui/Button.jsx';
 import Input from '../../components/ui/Input.jsx';
+import Select from '../../components/ui/Select.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import ConfirmDialog from '../../components/common/ConfirmDialog.jsx';
 import StartupCard from '../../components/startup/StartupCard.jsx';
@@ -13,6 +14,16 @@ import {
   updateStartup,
   deleteStartup,
 } from '../../services/startup.service.js';
+
+const SEARCH_DEBOUNCE_MS = 500;
+const DEFAULT_LIMIT = 10;
+
+const SORT_OPTIONS = [
+  { value: 'created_at:DESC', label: 'Latest First' },
+  { value: 'created_at:ASC', label: 'Oldest First' },
+  { value: 'title:ASC', label: 'Title A-Z' },
+  { value: 'title:DESC', label: 'Title Z-A' },
+];
 
 export default function FounderDashboard() {
   const { user } = useAuth();
@@ -30,11 +41,50 @@ export default function FounderDashboard() {
   const [formOpen, setFormOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Raw text as typed by the user; debounced into `search` before hitting the API.
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
 
+  const [status, setStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [order, setOrder] = useState('DESC');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(DEFAULT_LIMIT);
+
+  // Debounce the search input by 500ms, then reset back to page 1.
   useEffect(() => {
-    loadStartups();
-  }, [loadStartups]);
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+    setPage(1);
+  };
+
+  const handleSortChange = (e) => {
+    const [nextSortBy, nextOrder] = e.target.value.split(':');
+    setSortBy(nextSortBy);
+    setOrder(nextOrder);
+    setPage(1);
+  };
+
+  // Refetch from the backend whenever any of the query dependencies change.
+  useEffect(() => {
+    loadStartups({
+      search,
+      status: status === 'all' ? '' : status,
+      sortBy,
+      order,
+      page,
+      limit,
+    });
+  }, [search, status, sortBy, order, page, limit, loadStartups]);
 
   const openCreate = () => {
     setSelectedStartup(null);
@@ -47,16 +97,13 @@ export default function FounderDashboard() {
   };
 
   const startupList = Array.isArray(startups) ? startups : [];
+  const hasActiveFilters = search.trim() !== '' || status !== 'all';
 
-  const filteredStartups = startupList.filter((startup) => {
-    const term = search.trim().toLowerCase();
-    if (!term) return true;
+  const isFirstPage = page <= 1;
+  const isLastPage = startupList.length < limit;
 
-    return (
-      startup.title?.toLowerCase().includes(term) ||
-      startup.tagline?.toLowerCase().includes(term)
-    );
-  });
+  const goToPreviousPage = () => setPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () => setPage((prev) => prev + 1);
 
   const handleFormSubmit = async (payload) => {
     if (selectedStartup) {
@@ -105,38 +152,65 @@ export default function FounderDashboard() {
         </p>
       )}
 
-      {startupList.length > 0 && (
-        <div className="relative mt-6 max-w-sm">
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="relative">
           <Search
             size={16}
             className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-paper-faint"
           />
           <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            id="founder-startup-search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search your startups..."
             className="[&>input]:pl-9"
           />
         </div>
-      )}
+
+        <Select id="founder-status-filter" value={status} onChange={handleStatusChange}>
+          <option value="all" className="bg-blueprint-900">
+            All statuses
+          </option>
+          <option value="open" className="bg-blueprint-900">
+            Open
+          </option>
+          <option value="closed" className="bg-blueprint-900">
+            Closed
+          </option>
+        </Select>
+
+        <Select
+          id="founder-sort-filter"
+          value={`${sortBy}:${order}`}
+          onChange={handleSortChange}
+        >
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value} className="bg-blueprint-900">
+              {option.label}
+            </option>
+          ))}
+        </Select>
+      </div>
 
       <div className="mt-8">
         {loading ? (
           <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading…</p>
         ) : startupList.length === 0 ? (
-          <EmptyState
-            title="No startups posted yet"
-            body="Draft your first blueprint — add the tech stack and roles you need, and developers can start applying."
-            action={<Button onClick={openCreate}>Post your first startup</Button>}
-          />
-        ) : filteredStartups.length === 0 ? (
-          <EmptyState
-            title="No matching startups"
-            body={`No startups match "${search}". Try a different search term.`}
-          />
+          hasActiveFilters ? (
+            <EmptyState
+              title="No matching startups"
+              body="Try a different search term or clear your filters."
+            />
+          ) : (
+            <EmptyState
+              title="No startups posted yet"
+              body="Draft your first blueprint — add the tech stack and roles you need, and developers can start applying."
+              action={<Button onClick={openCreate}>Post your first startup</Button>}
+            />
+          )
         ) : (
           <div className="grid gap-5 sm:grid-cols-2">
-            {filteredStartups.map((startup) => (
+            {startupList.map((startup) => (
               <StartupCard
                 key={startup.id}
                 startup={startup}
@@ -148,6 +222,22 @@ export default function FounderDashboard() {
           </div>
         )}
       </div>
+
+      {!loading && startupList.length > 0 && (
+        <div className="mt-8 flex items-center justify-between">
+          <Button variant="outline" onClick={goToPreviousPage} disabled={isFirstPage}>
+            Previous
+          </Button>
+
+          <span className="font-mono text-xs uppercase tracking-widest text-paper-faint">
+            Page {page}
+          </span>
+
+          <Button variant="outline" onClick={goToNextPage} disabled={isLastPage}>
+            Next
+          </Button>
+        </div>
+      )}
 
       <StartupFormModal
         key={formOpen ? (selectedStartup?.id ?? 'new') : 'closed'}

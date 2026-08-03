@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 
 import DeveloperProjectCard from "../../components/project/DeveloperProjectCard.jsx";
+import UpcomingDeadlines from "../../components/project/UpcomingDeadlines.jsx";
 import Input from "../../components/ui/Input.jsx";
 import { ProjectProvider } from "../../context/ProjectContext.jsx";
 
 import { useDeveloper } from "../../hooks/useDeveloper.js";
+import { useTask } from "../../hooks/useTask.js";
 
 export default function DeveloperDashboard() {
     const navigate = useNavigate();
@@ -18,11 +20,20 @@ export default function DeveloperDashboard() {
         loadProjects,
     } = useDeveloper();
 
+    const {
+        tasks,
+        loadMyTasks,
+    } = useTask();
+
     const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadProjects();
     }, [loadProjects]);
+
+    useEffect(() => {
+        loadMyTasks();
+    }, [loadMyTasks]);
 
     const openWorkspace = (projectId) => {
         navigate(`/developer/workspace/${projectId}`);
@@ -56,6 +67,8 @@ export default function DeveloperDashboard() {
                 </p>
 
             </div>
+
+            <UpcomingDeadlines tasks={tasks} />
 
             {!loading && !error && projects.length > 0 && (
                 <div className="relative max-w-sm">

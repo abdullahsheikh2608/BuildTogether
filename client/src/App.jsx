@@ -11,6 +11,7 @@ import DashboardLayout from './components/layout/DashboardLayout.jsx';
 
 // Founder Pages
 import FounderDashboard from './pages/founder/FounderDashboard.jsx';
+import FounderAnalytics from './pages/founder/FounderAnalytics.jsx';
 import StartupApplications from './pages/founder/StartupApplication.jsx';
 
 // Developer Pages
@@ -43,6 +44,7 @@ function App() {
           {/* Founder Routes */}
           <Route element={<RoleRoute role="founder" />}>
             <Route path="/founder" element={<FounderDashboard />} />
+            <Route path="/founder/analytics" element={<FounderAnalytics />} />
             <Route
             path="/founder/projects/:startupId"
             element={<ProjectWorkspace />}
