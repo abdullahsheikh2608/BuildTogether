@@ -25,24 +25,8 @@ export const initializeSocket = (socketServer) => {
 
         io.on("connection", (socket) => {
 
-            if (process.env.NODE_ENV !== "production") {
-                console.log(`🟢 Socket connected: ${socket.user.id}`);
-            }
-
             socket.on("join_startup", (startupId) => {
                 socket.join(startupId);
-
-                if (process.env.NODE_ENV !== "production") {
-                    console.log(
-                        `Socket ${socket.user.id} joined startup ${startupId}`
-                    );
-                }
-            });
-
-            socket.on("disconnect", () => {
-                if (process.env.NODE_ENV !== "production") {
-                    console.log(`🔴 Socket disconnected: ${socket.user.id}`);
-                }
             });
 
         });
