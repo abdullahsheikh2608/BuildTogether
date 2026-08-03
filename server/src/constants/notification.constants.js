@@ -4,6 +4,7 @@ export const NOTIFICATION_TYPES = {
     DEADLINE: "deadline",
     PROJECT: "project",
     SYSTEM: "system",
+    MESSAGE: "message",
 };
 
 export const NOTIFICATION_LIMITS = {

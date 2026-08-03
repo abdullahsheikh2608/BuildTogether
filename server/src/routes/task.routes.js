@@ -19,7 +19,6 @@ router.post(
 router.get(
     "/startup/:startupId",
     authenticate,
-    authorizeRole("founder"),
     taskValidator.validateStartupId,
     taskController.getStartupTasks
 );

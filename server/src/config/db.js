@@ -11,4 +11,13 @@ const pool = new Pool({
     database: process.env.DB_NAME,
 });
 
+// Without this listener, any network hiccup on an idle connection
+// (Postgres restart, laptop sleep, VPN reconnect, etc.) throws an
+// unhandled error and crashes the whole Node process. Logging it
+// here instead lets the pool quietly recover/reconnect on the next
+// query, the way it's designed to.
+pool.on("error", (err) => {
+    console.error("Unexpected error on idle database client:", err.message);
+});
+
 export default pool;
