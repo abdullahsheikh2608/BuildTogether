@@ -9,6 +9,7 @@ import AssignTaskModal from "../../components/startup/AssignTaskModal.jsx";
 
 import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
 import ChatBox from "../../components/chat/ChatBox.jsx";
+import AiAssistantPanel from "../../components/project/AiAssistantPanel.jsx";
 
 import { createTask, deleteTask } from "../../services/task.service.js";
 import { removeMember } from "../../services/member.service.js";
@@ -259,6 +260,10 @@ export default function ProjectWorkspace() {
                 </div>
 
             </div>
+
+            {/* AI Assistant */}
+
+            <AiAssistantPanel startupId={startupId} />
 
             {/* Team Chat */}
 

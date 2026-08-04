@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, Check, Trash2, CheckCheck } from 'lucide-react';
+import { Bell, Check, Trash2, CheckCheck, X } from 'lucide-react';
 import { useNotifications } from '../../hooks/useNotifications.js';
 
 function timeAgo(dateString) {
@@ -29,6 +29,7 @@ export default function NotificationBell() {
   } = useNotifications();
 
   const [open, setOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -45,10 +46,25 @@ export default function NotificationBell() {
     };
   }, [open]);
 
+  useEffect(() => {
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setSelectedNotification(null);
+      }
+    }
+    if (selectedNotification) {
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [selectedNotification]);
+
   function handleItemClick(notification) {
     if (!notification.is_read) {
       markAsRead(notification.id);
     }
+    setSelectedNotification(notification);
   }
 
   return (
@@ -142,6 +158,55 @@ export default function NotificationBell() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {selectedNotification && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setSelectedNotification(null)}
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-xl border border-blueprint-line bg-blueprint-900 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-blueprint-line px-5 py-4">
+              <h3 className="font-semibold text-paper">
+                {selectedNotification.title}
+              </h3>
+
+              <button
+                onClick={() => setSelectedNotification(null)}
+                className="flex-shrink-0 rounded-md p-1 text-paper-dim transition hover:bg-blueprint-700 hover:text-cyan cursor-pointer"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto px-5 py-4">
+              <p className="whitespace-pre-wrap text-sm text-paper-dim">
+                {selectedNotification.message}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-blueprint-line px-5 py-3">
+              <p className="text-xs text-paper-dim/70">
+                {timeAgo(selectedNotification.created_at)}
+              </p>
+
+              <button
+                onClick={() => {
+                  removeNotification(selectedNotification.id);
+                  setSelectedNotification(null);
+                }}
+                className="flex items-center gap-1.5 text-xs font-medium text-paper-dim transition hover:text-red-400 cursor-pointer"
+              >
+                <Trash2 size={14} />
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

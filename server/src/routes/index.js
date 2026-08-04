@@ -11,6 +11,7 @@ import memberRoutes from "./member.routes.js";
 
 import dashboardRoutes from "./dashboard.routes.js";
 import chatRoutes from "./chat.routes.js";
+import aiRoutes from "./ai.routes.js";
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use("/notifications", notificationRoutes);
 router.use("/members", memberRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/chat", chatRoutes);
+router.use("/ai", aiRoutes);
 
 export default router;

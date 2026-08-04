@@ -225,6 +225,45 @@ export const updateStartup = async (startupId, founderId, startupData) => {
     return result.rows[0];
 };
 
+// Startups eligible for the automatic weekly report: still open, and
+// either never reported on or last reported on more than INTERVAL_DAYS
+// ago. Closed startups are skipped — a founder doesn't need progress
+// reports on a startup that isn't actively being worked on anymore.
+export const getOpenStartupsDueForWeeklyReport = async (intervalDays) => {
+
+    const result = await pool.query(
+        `
+        SELECT
+            id,
+            founder_id,
+            title
+        FROM startups
+        WHERE status = 'open'
+        AND (
+            last_weekly_report_at IS NULL
+            OR last_weekly_report_at <= NOW() - ($1 * INTERVAL '1 day')
+        )
+        `,
+        [intervalDays]
+    );
+
+    return result.rows;
+};
+
+// Stamps a startup as just having had its weekly report sent, so the
+// scheduler's "due" query won't pick it up again until the next cycle.
+export const markWeeklyReportSent = async (startupId) => {
+
+    await pool.query(
+        `
+        UPDATE startups
+        SET last_weekly_report_at = NOW()
+        WHERE id = $1
+        `,
+        [startupId]
+    );
+};
+
 export const deleteStartup = async (startupId, founderId) => {
 
     const existingStartup = await pool.query(

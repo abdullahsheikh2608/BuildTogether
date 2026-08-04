@@ -6,6 +6,8 @@ import { TASK_DEADLINE_REMINDER } from "./constants/task.constant.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { initializeSocket } from "./socket/socket.js";
+import { weeklyReportGeneratorService } from "./services/weeklyReportGenerator.service.js";
+import { WEEKLY_REPORT_SCHEDULE } from "./constants/weeklyReport.constant.js";
 
 
 const PORT = process.env.PORT || 5000;
@@ -36,10 +38,54 @@ async function runDeadlineReminderCheck() {
     }
 }
 
+async function runWeeklyReportCheck() {
+    try {
+        const reportsSent = await weeklyReportGeneratorService.sendWeeklyReports();
+
+        if (reportsSent > 0) {
+            console.log(`📊 Sent ${reportsSent} automatic weekly report(s)`);
+        }
+    } catch (error) {
+        console.error("❌ Weekly report check failed");
+        console.error(error);
+    }
+}
+runWeeklyReportCheck();
+setInterval(runWeeklyReportCheck, WEEKLY_REPORT_SCHEDULE.CHECK_INTERVAL_MS);
+
+// Postgres can take a few seconds to finish starting right after a
+// machine boot (or right after a crash-recovery cycle), which used to
+// make the very first connection attempt fail and crash the whole
+// server immediately. Retrying with a short delay gives it a real
+// chance to come up before we give up.
+async function connectWithRetry(maxAttempts = 10, delayMs = 3000) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            await pool.query("SELECT NOW()");
+            return;
+        } catch (error) {
+
+            const isLastAttempt = attempt === maxAttempts;
+
+            console.error(
+                `❌ Database connection attempt ${attempt}/${maxAttempts} failed: ${error.message}`
+            );
+
+            if (isLastAttempt) {
+                throw error;
+            }
+
+            console.log(`   Retrying in ${delayMs / 1000}s...`);
+
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+    }
+}
+
 async function startServer() {
     try {
 
-        await pool.query("SELECT NOW()");
+        await connectWithRetry();
 
         console.log("✅ Database Connected Successfully");
 
@@ -66,8 +112,8 @@ async function startServer() {
 
     } catch (error) {
 
-        console.error("❌ Database Connection Failed");
-        console.error(error);
+        console.error("❌ Database Connection Failed after multiple retries");
+        console.error("   Check that PostgreSQL is running (services.msc) and DATABASE_URL in .env is correct.");
 
         process.exit(1);
     }
