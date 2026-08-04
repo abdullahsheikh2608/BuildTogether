@@ -53,7 +53,44 @@ const summarizeProject = async (req, res, next) => {
     }
 };
 
+const generateWeeklyReport = async (req, res, next) => {
+    try {
+
+        const { startupId } = req.params;
+        const requesterId = req.user.id;
+
+        const result = await aiService.generateWeeklyReport(
+            startupId,
+            requesterId
+        );
+
+        if (result === "STARTUP_NOT_FOUND") {
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
+                success: false,
+                message: AI_MESSAGES.STARTUP_NOT_FOUND,
+            });
+        }
+
+        if (result === "FORBIDDEN") {
+            return res.status(HTTP_STATUS.FORBIDDEN).json({
+                success: false,
+                message: AI_MESSAGES.FORBIDDEN,
+            });
+        }
+
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: AI_MESSAGES.WEEKLY_REPORT_GENERATED,
+            data: result,
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     health,
     summarizeProject,
+    generateWeeklyReport,
 };

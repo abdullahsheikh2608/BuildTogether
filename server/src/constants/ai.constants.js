@@ -6,6 +6,7 @@ export const AI_MESSAGES = {
     FORBIDDEN: "You do not have permission to summarize this startup.",
     INVALID_STARTUP_ID: "A valid startup id is required.",
     SUMMARY_GENERATED: "Project summary generated successfully.",
+    WEEKLY_REPORT_GENERATED: "Weekly report generated successfully.",
 };
 
 // Non-secret request defaults for the Groq client. The API key and model

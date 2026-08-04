@@ -1,5 +1,6 @@
 import { groqService } from "./groq.service.js";
 import { getStartupById } from "./startup.service.js";
+import taskService from "./task.service.js";
 import { promptBuilder } from "../utils/promptBuilder.js";
 import { AI_MESSAGES } from "../constants/ai.constants.js";
 
@@ -45,8 +46,74 @@ const summarizeProject = async (startupId, requesterId) => {
     return { summary: summary.trim() };
 };
 
+// Derives report-ready stats from the startup's task list. Kept local to
+// this service since it's only needed for the weekly report prompt.
+const buildTaskStats = (tasks) => {
+
+    const today = new Date();
+    const weekFromNow = new Date();
+    weekFromNow.setDate(today.getDate() + 7);
+
+    const isOverdue = (task) =>
+        task.status !== "done" &&
+        task.deadline &&
+        new Date(task.deadline) < today;
+
+    const isUpcoming = (task) =>
+        task.status !== "done" &&
+        task.deadline &&
+        new Date(task.deadline) >= today &&
+        new Date(task.deadline) <= weekFromNow;
+
+    return {
+        total: tasks.length,
+        completed: tasks.filter((t) => t.status === "done").length,
+        inProgress: tasks.filter((t) => t.status === "in_progress").length,
+        todo: tasks.filter((t) => t.status === "todo").length,
+        overdue: tasks.filter(isOverdue),
+        upcoming: tasks.filter(isUpcoming),
+    };
+};
+
+// Generates a short AI-written weekly progress report for a startup.
+// Reuses taskService.getStartupTasks() instead of a new query — the
+// founder ownership check already happens inside that call.
+const generateWeeklyReport = async (startupId, requesterId) => {
+
+    const startup = await getStartupById(startupId);
+
+    if (!startup) {
+        return "STARTUP_NOT_FOUND";
+    }
+
+    if (startup.founder_id !== requesterId) {
+        return "FORBIDDEN";
+    }
+
+    const tasks = await taskService.getStartupTasks(startupId, requesterId);
+
+    const stats = buildTaskStats(Array.isArray(tasks) ? tasks : []);
+
+    const prompt = promptBuilder.buildWeeklyReportPrompt(startup, stats);
+
+    const report = await generateCompletion(prompt);
+
+    return {
+        report: report.trim(),
+        stats: {
+            total: stats.total,
+            completed: stats.completed,
+            inProgress: stats.inProgress,
+            todo: stats.todo,
+            overdueCount: stats.overdue.length,
+            upcomingCount: stats.upcoming.length,
+        },
+    };
+};
+
 export const aiService = {
     generateCompletion,
     checkHealth,
     summarizeProject,
+    generateWeeklyReport,
 };
