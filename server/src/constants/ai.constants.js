@@ -9,10 +9,10 @@ export const AI_MESSAGES = {
     WEEKLY_REPORT_GENERATED: "Weekly report generated successfully.",
 };
 
-// Non-secret request defaults for the Groq client. The API key and model
-// name itself are read from environment variables — never hardcoded here.
+// Request defaults for the Groq client. The API key, model name, and
+// base URL itself are all read from environment variables — never
+// hardcoded here.
 export const GROQ_CONFIG = {
-    BASE_URL: "https://api.groq.com/openai/v1/chat/completions",
     TEMPERATURE: 0.4,
     MAX_TOKENS: 1024,
 };

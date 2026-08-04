@@ -9,6 +9,8 @@ const getCompletion = async (prompt) => {
 
     const apiKey = process.env.GROQ_API_KEY;
     const model = process.env.AI_MODEL;
+    const baseUrl =
+        process.env.GROQ_BASE_URL || "https://api.groq.com/openai/v1/chat/completions";
 
     if (!apiKey || !model) {
         throw new Error(
@@ -20,7 +22,7 @@ const getCompletion = async (prompt) => {
 
     try {
 
-        response = await fetch(GROQ_CONFIG.BASE_URL, {
+        response = await fetch(baseUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
