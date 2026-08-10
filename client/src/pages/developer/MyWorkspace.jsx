@@ -1,23 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { Briefcase, Sparkles, MessageSquare, Users, ListChecks } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Briefcase, Sparkles, MessageSquare, Users, ListChecks, ArrowRight } from "lucide-react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import Button from "../../components/ui/Button.jsx";
 import Input from "../../components/ui/Input.jsx";
 import EmptyState from "../../components/ui/EmptyState.jsx";
 import ExpandableText from "../../components/ui/ExpandableText.jsx";
 import { useDeveloper } from "../../hooks/useDeveloper.js";
-import { getWorkspaceOverview, getWorkspaceTasks } from "../../services/workspace.service.js";
+import { getWorkspaceOverview } from "../../services/workspace.service.js";
 
 export default function MyWorkspace() {
   const { startupId: routeStartupId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlStartupId = routeStartupId || searchParams.get("startupId") || searchParams.get("projectId");
+
   const { projects, loadProjects } = useDeveloper();
 
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewData, setOverviewData] = useState(null);
-  const [filteredTasks, setFilteredTasks] = useState(null);
 
   useEffect(() => {
     loadProjects();
@@ -30,16 +32,22 @@ export default function MyWorkspace() {
 
   useEffect(() => {
     if (acceptedProjects.length === 0) return;
-    const initialId = routeStartupId || String(acceptedProjects[0].id);
-    setSelectedProjectId((current) => current || initialId);
-  }, [acceptedProjects, routeStartupId]);
+    const match = acceptedProjects.find((p) => String(p.id) === String(urlStartupId));
+    const targetId = match ? String(match.id) : String(acceptedProjects[0].id);
+    setSelectedProjectId((current) => current || targetId);
+  }, [acceptedProjects, urlStartupId]);
+
+  const handleProjectChange = (e) => {
+    const newId = e.target.value;
+    setSelectedProjectId(newId);
+    setSearchParams({ startupId: newId }, { replace: true });
+  };
 
   useEffect(() => {
     if (!selectedProjectId) return;
 
     let isMounted = true;
     setOverviewLoading(true);
-    setFilteredTasks(null);
 
     getWorkspaceOverview(selectedProjectId)
       .then((data) => {
@@ -100,7 +108,7 @@ export default function MyWorkspace() {
           />
           <select
             value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
+            onChange={handleProjectChange}
             className="rounded-lg border border-blueprint-line bg-white py-2 px-3 text-sm outline-none focus:border-cyan focus:ring-2 focus:ring-cyan/20"
           >
             {acceptedProjects.map((item) => (
@@ -170,7 +178,7 @@ export default function MyWorkspace() {
                   </div>
                 </div>
                 <div className="mt-5 flex flex-col gap-3">
-                  <Button as={Link} to="/dashboard/ai">
+                  <Button as={Link} to={`/dashboard/ai${selectedProjectId ? `?startupId=${selectedProjectId}` : ""}`}>
                     Open AI Assistant
                   </Button>
                 </div>
@@ -197,7 +205,7 @@ export default function MyWorkspace() {
                   )}
                 </div>
                 <div className="mt-5">
-                  <Button as={Link} to="/dashboard/chat">
+                  <Button as={Link} to={`/dashboard/chat${selectedProjectId ? `?startupId=${selectedProjectId}` : ""}`}>
                     Open Team Chat
                   </Button>
                 </div>
@@ -207,16 +215,29 @@ export default function MyWorkspace() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="blueprint-card p-6">
-              <div className="flex items-center gap-2">
-                <ListChecks size={18} className="text-cyan" />
-                <h3 className="font-display text-lg font-semibold text-paper">Recent Tasks</h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ListChecks size={18} className="text-cyan" />
+                  <h3 className="font-display text-lg font-semibold text-paper">Recent Tasks</h3>
+                </div>
+                <Link
+                  to={`/dashboard/tasks${selectedProjectId ? `?startupId=${selectedProjectId}` : ""}`}
+                  className="flex items-center gap-1 text-xs font-medium text-cyan transition hover:text-cyan/80"
+                >
+                  View all
+                  <ArrowRight size={13} />
+                </Link>
               </div>
               <div className="mt-5 space-y-3">
                 {upcomingTasks.length === 0 ? (
                   <p className="text-sm text-paper-dim">No tasks available yet.</p>
                 ) : (
                   upcomingTasks.map((task) => (
-                    <div key={task.id} className="rounded-2xl border border-blueprint-line bg-blueprint-900/40 p-4">
+                    <Link
+                      key={task.id}
+                      to={`/dashboard/tasks?taskId=${task.id}&startupId=${selectedProjectId}`}
+                      className="block rounded-2xl border border-blueprint-line bg-blueprint-900/40 p-4 transition-colors hover:bg-blueprint-800/60"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-paper">{task.title}</p>
@@ -224,7 +245,7 @@ export default function MyWorkspace() {
                         </div>
                         <span className="rounded-full bg-blueprint-800 px-2 py-1 text-xs font-medium text-paper-dim">{task.status}</span>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>
