@@ -91,69 +91,152 @@ const taskService = {
         return result.rows[0];
     },
 
-    getStartupTasks: async (startupId, requesterId) => {
-        const startup = await pool.query(
+    getStartupTasks : async (
+    startupId,
+    requesterId,
+    search = ""
+    ) => {
+    const startup = await pool.query(
+        `
+        SELECT id, founder_id
+        FROM startups
+        WHERE id = $1
+        `,
+        [startupId]
+    );
+
+    if (startup.rows.length === 0) {
+        return "STARTUP_NOT_FOUND";
+    }
+
+    const isFounder = startup.rows[0].founder_id === requesterId;
+
+    if (!isFounder) {
+
+        const membership = await pool.query(
             `
-            SELECT id, founder_id
-            FROM startups
-            WHERE id = $1
+            SELECT id
+            FROM applications
+            WHERE startup_id = $1
+            AND developer_id = $2
+            AND status = 'accepted'
             `,
-            [startupId]
+            [startupId, requesterId]
         );
 
-        if (startup.rows.length === 0) {
-            return "STARTUP_NOT_FOUND";
+        if (membership.rows.length === 0) {
+            return "FORBIDDEN";
         }
+    }
 
-        const isFounder = startup.rows[0].founder_id === requesterId;
+    const result = await pool.query(
+        `
+        SELECT
+            t.id,
+            t.startup_id,
+            t.assigned_to,
+            t.title,
+            t.description,
+            t.priority,
+            t.status,
+            t.deadline,
+            t.created_at,
+            p.full_name AS developer_name,
+            p.username AS developer_username
+        FROM tasks t
+        LEFT JOIN profiles p
+            ON p.user_id = t.assigned_to
+        WHERE t.startup_id = $1
+        AND (
+            $2 = ''
+            OR t.title ILIKE '%' || $2 || '%'
+            OR t.description ILIKE '%' || $2 || '%'
+        )
+        ORDER BY t.created_at DESC
+        `,
+        [
+            startupId,
+            search.trim(),
+        ]
+    );
 
-        if (!isFounder) {
+    return result.rows;
+},
 
-            const membership = await pool.query(
-                `
-                SELECT id
-                FROM applications
-                WHERE startup_id = $1
-                AND developer_id = $2
-                AND status = 'accepted'
-                `,
-                [startupId, requesterId]
+    getMyTasks: async (developerId, filters = {}) => {
+        const {
+            search = "",
+            status = "all",
+            priority = "all",
+            project = "all",
+            deadline = "all",
+            page,
+            limit,
+        } = filters;
+
+        const conditions = ["t.assigned_to = $1"];
+        const values = [developerId];
+        let index = 2;
+
+        const trimmedSearch = (search ?? "").trim();
+        if (trimmedSearch) {
+            conditions.push(
+                `(t.title ILIKE $${index} OR t.description ILIKE $${index} OR s.title ILIKE $${index})`
             );
-
-            if (membership.rows.length === 0) {
-                return "FORBIDDEN";
-            }
+            values.push(`%${trimmedSearch}%`);
+            index++;
         }
 
-        const result = await pool.query(
+        if (status && status !== "all") {
+            conditions.push(`t.status = $${index}`);
+            values.push(status);
+            index++;
+        }
+
+        if (priority && priority !== "all") {
+            conditions.push(`t.priority = $${index}`);
+            values.push(priority);
+            index++;
+        }
+
+        if (project && project !== "all") {
+            conditions.push(`t.startup_id = $${index}`);
+            values.push(project);
+            index++;
+        }
+
+        if (deadline === "overdue") {
+            conditions.push(`t.deadline IS NOT NULL AND t.deadline < CURRENT_DATE AND t.status != 'done'`);
+        } else if (deadline === "today") {
+            conditions.push(`t.deadline = CURRENT_DATE`);
+        } else if (deadline === "this_week") {
+            conditions.push(`t.deadline >= CURRENT_DATE AND t.deadline <= CURRENT_DATE + INTERVAL '7 days'`);
+        } else if (deadline === "no_deadline") {
+            conditions.push(`t.deadline IS NULL`);
+        }
+
+        const whereClause = conditions.join(" AND ");
+
+        const countResult = await pool.query(
             `
-            SELECT
-                t.id,
-                t.startup_id,
-                t.assigned_to,
-                t.title,
-                t.description,
-                t.priority,
-                t.status,
-                t.deadline,
-                t.created_at,
-                p.full_name AS developer_name,
-                p.username AS developer_username
+            SELECT COUNT(*)::int AS total
             FROM tasks t
-            LEFT JOIN profiles p
-                ON p.user_id = t.assigned_to
-            WHERE t.startup_id = $1
-            ORDER BY t.created_at DESC
+            INNER JOIN startups s
+                ON t.startup_id = s.id
+            WHERE ${whereClause}
             `,
-            [startupId]
+            values
         );
 
-        return result.rows;
-    },
+        const total = countResult.rows[0]?.total ?? 0;
 
-    getMyTasks: async (developerId) => {
-        const result = await pool.query(
-            `
+        const parsedLimit = Number(limit);
+        const hasPagination = Number.isInteger(parsedLimit) && parsedLimit > 0;
+
+        const parsedPage = Number(page);
+        const currentPage = hasPagination && Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+
+        let query = `
             SELECT
                 t.id,
                 t.startup_id,
@@ -171,13 +254,29 @@ const taskService = {
             INNER JOIN startups s
                 ON t.startup_id = s.id
 
-            WHERE t.assigned_to = $1
+            WHERE ${whereClause}
             ORDER BY t.created_at DESC
-            `,
-            [developerId]
-        );
+        `;
 
-        return result.rows;
+        const queryValues = [...values];
+
+        if (hasPagination) {
+            const offset = (currentPage - 1) * parsedLimit;
+            query += ` LIMIT $${index} OFFSET $${index + 1}`;
+            queryValues.push(parsedLimit, offset);
+        }
+
+        const result = await pool.query(query, queryValues);
+
+        return {
+            tasks: result.rows,
+            pagination: {
+                total,
+                page: currentPage,
+                limit: hasPagination ? parsedLimit : total || 1,
+                totalPages: hasPagination ? Math.max(1, Math.ceil(total / parsedLimit)) : 1,
+            },
+        };
     },
 
     updateTask: async (taskId, founderId, taskData) => {

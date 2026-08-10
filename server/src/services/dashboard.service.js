@@ -1,6 +1,10 @@
 import pool from "../config/db.js";
 
-export const getDashboardAnalytics = async (founderId) => {
+// When startupId is provided, every query below is scoped to that single
+// startup via "$2::uuid IS NULL OR s.id = $2" — startupId stays null for the
+// "all projects" view so the same queries serve both cases without
+// duplicating SQL.
+export const getDashboardAnalytics = async (founderId, startupId = null) => {
 
     // Total Startups
     const totalStartupsResult = await pool.query(
@@ -8,8 +12,9 @@ export const getDashboardAnalytics = async (founderId) => {
         SELECT COUNT(*) AS total_startups
         FROM startups
         WHERE founder_id = $1
+        AND ($2::uuid IS NULL OR id = $2)
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
     // Total Applications
@@ -20,8 +25,9 @@ export const getDashboardAnalytics = async (founderId) => {
         INNER JOIN startups s
             ON a.startup_id = s.id
         WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
     // Pending Applications
@@ -32,9 +38,10 @@ export const getDashboardAnalytics = async (founderId) => {
         INNER JOIN startups s
             ON a.startup_id = s.id
         WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
         AND a.status = 'pending'
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
     // Accepted Applications
@@ -45,9 +52,10 @@ export const getDashboardAnalytics = async (founderId) => {
         INNER JOIN startups s
             ON a.startup_id = s.id
         WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
         AND a.status = 'accepted'
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
     // Removed Applications
@@ -58,21 +66,28 @@ export const getDashboardAnalytics = async (founderId) => {
         INNER JOIN startups s
             ON a.startup_id = s.id
         WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
         AND a.status = 'removed'
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
-    // Total Developers
+    // Total Developers — sourced from accepted applications, the same
+    // source of truth used everywhere else in the app (chat, tasks,
+    // members). The project_members/projects tables are never actually
+    // populated anywhere in this codebase, so querying them here always
+    // silently returned 0.
     const totalDevelopersResult = await pool.query(
         `
-        SELECT COUNT(DISTINCT pm.user_id) AS total_developers
-        FROM project_members pm
-        INNER JOIN projects p
-            ON pm.project_id = p.id
-        WHERE p.founder_id = $1
+        SELECT COUNT(DISTINCT a.developer_id) AS total_developers
+        FROM applications a
+        INNER JOIN startups s
+            ON a.startup_id = s.id
+        WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
+        AND a.status = 'accepted'
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
     // Total Tasks
@@ -83,8 +98,9 @@ export const getDashboardAnalytics = async (founderId) => {
         INNER JOIN startups s
             ON t.startup_id = s.id
         WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
     // Completed Tasks
@@ -95,9 +111,10 @@ export const getDashboardAnalytics = async (founderId) => {
         INNER JOIN startups s
             ON t.startup_id = s.id
         WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
         AND t.status = 'done'
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
     // Pending Tasks
@@ -108,12 +125,147 @@ export const getDashboardAnalytics = async (founderId) => {
         INNER JOIN startups s
             ON t.startup_id = s.id
         WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
         AND t.status = 'todo'
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
-    // Monthly Startup Growth (last 6 months, including months with zero startups)
+    // In Progress Tasks — completes the real 3-status breakdown
+    // (todo / in_progress / done). The app has no "review" status, so
+    // the dashboard should only ever show these three, not a fabricated
+    // fourth category.
+    const inProgressTasksResult = await pool.query(
+        `
+        SELECT COUNT(*) AS in_progress_tasks
+        FROM tasks t
+        INNER JOIN startups s
+            ON t.startup_id = s.id
+        WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
+        AND t.status = 'in_progress'
+        `,
+        [founderId, startupId]
+    );
+
+    // Recent Applications — across this founder's startups, or scoped to
+    // one selected startup.
+    const recentApplicationsResult = await pool.query(
+        `
+        SELECT
+            a.id,
+            a.status,
+            a.applied_at,
+            p.full_name AS applicant_name,
+            s.id AS startup_id,
+            s.title AS startup_title
+        FROM applications a
+        INNER JOIN startups s
+            ON a.startup_id = s.id
+        INNER JOIN profiles p
+            ON a.developer_id = p.user_id
+        WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
+        ORDER BY a.applied_at DESC
+        LIMIT 5
+        `,
+        [founderId, startupId]
+    );
+
+    // Upcoming Deadlines — tasks across this founder's startups (or one
+    // selected startup) with a deadline in the future that aren't done yet.
+    const upcomingDeadlinesResult = await pool.query(
+        `
+        SELECT
+            t.id,
+            t.title,
+            t.priority,
+            t.deadline,
+            t.status,
+            s.title AS startup_title,
+            p.full_name AS assignee_name
+        FROM tasks t
+        INNER JOIN startups s
+            ON t.startup_id = s.id
+        LEFT JOIN profiles p
+            ON t.assigned_to = p.user_id
+        WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
+        AND t.status != 'done'
+        AND t.deadline IS NOT NULL
+        AND t.deadline >= CURRENT_DATE
+        ORDER BY t.deadline ASC
+        LIMIT 5
+        `,
+        [founderId, startupId]
+    );
+
+    // My Startups overview — each startup with its own application and
+    // team counts, for the dashboard's startup list panel.
+    const startupsOverviewResult = await pool.query(
+        `
+        SELECT
+            s.id,
+            s.title,
+            s.tagline,
+            s.status,
+            s.created_at,
+            COUNT(a.id) FILTER (WHERE a.id IS NOT NULL) AS applications_count,
+            COUNT(a.id) FILTER (WHERE a.status = 'accepted') AS team_count
+        FROM startups s
+        LEFT JOIN applications a
+            ON a.startup_id = s.id
+        WHERE s.founder_id = $1
+        AND ($2::uuid IS NULL OR s.id = $2)
+        GROUP BY s.id
+        ORDER BY s.created_at DESC
+        LIMIT 5
+        `,
+        [founderId, startupId]
+    );
+
+    // Recent Activity — a merged, real event feed built from application
+    // and task events actually stored in the database. No placeholder
+    // or fabricated events.
+    const recentActivityResult = await pool.query(
+        `
+        (
+            SELECT
+                'application' AS type,
+                a.applied_at AS timestamp,
+                p.full_name AS actor_name,
+                s.title AS startup_title,
+                a.status::text AS detail
+            FROM applications a
+            INNER JOIN startups s ON a.startup_id = s.id
+            INNER JOIN profiles p ON a.developer_id = p.user_id
+            WHERE s.founder_id = $1
+            AND ($2::uuid IS NULL OR s.id = $2)
+            ORDER BY a.applied_at DESC
+            LIMIT 8
+        )
+        UNION ALL
+        (
+            SELECT
+                'task_completed' AS type,
+                t.updated_at AS timestamp,
+                p.full_name AS actor_name,
+                s.title AS startup_title,
+                t.title AS detail
+            FROM tasks t
+            INNER JOIN startups s ON t.startup_id = s.id
+            LEFT JOIN profiles p ON t.assigned_to = p.user_id
+            WHERE s.founder_id = $1
+            AND ($2::uuid IS NULL OR s.id = $2)
+            AND t.status = 'done'
+            ORDER BY t.updated_at DESC
+            LIMIT 8
+        )
+        ORDER BY timestamp DESC
+        LIMIT 8
+        `,
+        [founderId, startupId]
+    );
     const monthlyStartupGrowthResult = await pool.query(
         `
         SELECT
@@ -127,10 +279,11 @@ export const getDashboardAnalytics = async (founderId) => {
         LEFT JOIN startups s
             ON date_trunc('month', s.created_at) = month_series
             AND s.founder_id = $1
+            AND ($2::uuid IS NULL OR s.id = $2)
         GROUP BY month_series
         ORDER BY month_series
         `,
-        [founderId]
+        [founderId, startupId]
     );
 
     // ---------- Formatting ----------
@@ -171,6 +324,10 @@ export const getDashboardAnalytics = async (founderId) => {
         pendingTasksResult.rows[0].pending_tasks
     );
 
+    const inProgressTasks = Number(
+        inProgressTasksResult.rows[0].in_progress_tasks
+    );
+
     const completionRate =
         totalTasks === 0
             ? 0
@@ -179,6 +336,43 @@ export const getDashboardAnalytics = async (founderId) => {
     const monthlyStartupGrowth = monthlyStartupGrowthResult.rows.map((row) => ({
         month: row.month,
         count: Number(row.count),
+    }));
+
+    const recentApplications = recentApplicationsResult.rows.map((row) => ({
+        id: row.id,
+        applicantName: row.applicant_name,
+        startupId: row.startup_id,
+        startupTitle: row.startup_title,
+        status: row.status,
+        appliedAt: row.applied_at,
+    }));
+
+    const upcomingDeadlines = upcomingDeadlinesResult.rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        priority: row.priority,
+        deadline: row.deadline,
+        status: row.status,
+        startupTitle: row.startup_title,
+        assigneeName: row.assignee_name,
+    }));
+
+    const startupsOverview = startupsOverviewResult.rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        tagline: row.tagline,
+        status: row.status,
+        createdAt: row.created_at,
+        applicationsCount: Number(row.applications_count),
+        teamCount: Number(row.team_count),
+    }));
+
+    const recentActivity = recentActivityResult.rows.map((row) => ({
+        type: row.type,
+        timestamp: row.timestamp,
+        actorName: row.actor_name,
+        startupTitle: row.startup_title,
+        detail: row.detail,
     }));
 
     return {
@@ -191,7 +385,12 @@ export const getDashboardAnalytics = async (founderId) => {
         totalTasks,
         completedTasks,
         pendingTasks,
+        inProgressTasks,
         completionRate,
         monthlyStartupGrowth,
+        recentApplications,
+        upcomingDeadlines,
+        startupsOverview,
+        recentActivity,
     };
 };

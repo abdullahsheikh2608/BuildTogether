@@ -1,3 +1,4 @@
+import pool from "../config/db.js";
 import { groqService } from "./groq.service.js";
 import { getStartupById } from "./startup.service.js";
 import taskService from "./task.service.js";
@@ -17,11 +18,27 @@ const generateCompletion = async (prompt) => {
     return groqService.getCompletion(prompt);
 };
 
-const checkHealth = () => {
-    return {
-        status: "ok",
-        message: AI_MESSAGES.HEALTH_OK,
-    };
+// Founders can access any startup they own. Developers can access a
+// startup only once their application to it has been accepted — same
+// membership rule used by taskService.getStartupTasks().
+const canAccessStartup = async (startup, requesterId) => {
+
+    if (startup.founder_id === requesterId) {
+        return true;
+    }
+
+    const membership = await pool.query(
+        `
+        SELECT id
+        FROM applications
+        WHERE startup_id = $1
+        AND developer_id = $2
+        AND status = 'accepted'
+        `,
+        [startup.id, requesterId]
+    );
+
+    return membership.rows.length > 0;
 };
 
 // Generates a short AI summary of an existing startup's description.
@@ -35,7 +52,7 @@ const summarizeProject = async (startupId, requesterId) => {
         return "STARTUP_NOT_FOUND";
     }
 
-    if (startup.founder_id !== requesterId) {
+    if (!(await canAccessStartup(startup, requesterId))) {
         return "FORBIDDEN";
     }
 
@@ -86,7 +103,7 @@ const generateWeeklyReport = async (startupId, requesterId) => {
         return "STARTUP_NOT_FOUND";
     }
 
-    if (startup.founder_id !== requesterId) {
+    if (!(await canAccessStartup(startup, requesterId))) {
         return "FORBIDDEN";
     }
 
@@ -113,7 +130,6 @@ const generateWeeklyReport = async (startupId, requesterId) => {
 
 export const aiService = {
     generateCompletion,
-    checkHealth,
     summarizeProject,
     generateWeeklyReport,
 };

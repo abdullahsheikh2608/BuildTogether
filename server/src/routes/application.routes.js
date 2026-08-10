@@ -2,23 +2,21 @@ import { Router } from "express";
 
 import {
     createApplication,
+    updateApplication,
+    getApplicationById,
+    downloadApplicationResume,
     getMyApplications,
     getStartupApplications,
     updateApplicationStatus,
 } from "../controllers/application.controller.js";
 
-import {
-    authenticate,
-} from "../middlewares/auth.middleware.js";
-
-import {
-    authorizeRole,
-} from "../middlewares/role.middleware.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
+import { authorizeRole } from "../middlewares/role.middleware.js";
+import { uploadResume } from "../middlewares/upload.middleware.js";
 
 import {
     validateCreateApplication,
     validateStartupId,
-    validateUpdateApplication,
     validateApplicationId,
 } from "../validators/application.validator.js";
 
@@ -32,7 +30,14 @@ router.get(
     getMyApplications
 );
 
-// Get Applications of a Startup
+router.get(
+    "/my",
+    authenticate,
+    authorizeRole("developer"),
+    getMyApplications
+);
+
+// Get Applications of a Startup (Founder only)
 router.get(
     "/startup/:startupId",
     authenticate,
@@ -46,17 +51,50 @@ router.post(
     "/",
     authenticate,
     authorizeRole("developer"),
+    uploadResume.single("resume"),
     validateCreateApplication,
     createApplication
 );
 
-// Update Application Status (Founder only)
+// Get Application Details by ID (Developer owner or Founder owner)
+router.get(
+    "/:id",
+    authenticate,
+    validateApplicationId,
+    getApplicationById
+);
+
+// Download / View Application Resume File (Developer owner or Founder owner)
+router.get(
+    "/:id/resume",
+    authenticate,
+    validateApplicationId,
+    downloadApplicationResume
+);
+
+// Update Application (Dispatches based on role: Founder updates status, Developer updates content/resume)
 router.patch(
     "/:id",
     authenticate,
+    validateApplicationId,
+    uploadResume.single("resume"),
+    (req, res, next) => {
+        if (req.user.role === "founder") {
+            return updateApplicationStatus(req, res, next);
+        } else if (req.user.role === "developer") {
+            return updateApplication(req, res, next);
+        }
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+);
+
+// Explicit Status Update Endpoint (Founder only)
+router.patch(
+    "/:id/status",
+    authenticate,
     authorizeRole("founder"),
     validateApplicationId,
-    validateUpdateApplication,
     updateApplicationStatus
 );
+
 export default router;

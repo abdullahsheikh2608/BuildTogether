@@ -5,7 +5,8 @@ import { DASHBOARD_MESSAGES } from "../constants/messages.js";
 export const getDashboardAnalytics = async (req, res, next) => {
     try {
 
-        const analytics = await getDashboardAnalyticsService(req.user.id);
+        const startupId = req.query.startupId || null;
+        const analytics = await getDashboardAnalyticsService(req.user.id, startupId);
 
         return res.status(200).json({
             success: true,

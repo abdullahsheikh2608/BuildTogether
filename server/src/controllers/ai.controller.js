@@ -2,21 +2,6 @@ import { aiService } from "../services/ai.service.js";
 import { AI_MESSAGES } from "../constants/ai.constants.js";
 import { HTTP_STATUS } from "../constants/statusCodes.js";
 
-const health = async (req, res, next) => {
-    try {
-
-        const status = aiService.checkHealth();
-
-        res.status(200).json({
-            success: true,
-            message: status.message,
-        });
-
-    } catch (error) {
-        next(error);
-    }
-};
-
 const summarizeProject = async (req, res, next) => {
     try {
 
@@ -90,7 +75,6 @@ const generateWeeklyReport = async (req, res, next) => {
 };
 
 export {
-    health,
     summarizeProject,
     generateWeeklyReport,
 };

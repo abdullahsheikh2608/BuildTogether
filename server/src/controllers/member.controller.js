@@ -8,11 +8,13 @@ const getStartupMembers = async (req, res) => {
     try {
 
         const { id } = req.params;
+        const { search = "" } = req.query;
         const founderId = req.user.id;
 
         const members = await memberService.getStartupMembers(
             id,
-            founderId
+            founderId,
+            search
         );
 
         if (members === "STARTUP_NOT_FOUND") {
