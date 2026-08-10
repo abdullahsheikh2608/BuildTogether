@@ -218,3 +218,21 @@ export const SEARCH_MESSAGES = {
     FETCH_SUCCESSFULLY: "Search results fetched successfully",
     QUERY_REQUIRED: "Search query is required",
 };
+
+export const WORKSPACE_MESSAGES = {
+    OVERVIEW_FETCHED_SUCCESSFULLY: "Workspace overview fetched successfully",
+
+    MEMBERS_FETCHED_SUCCESSFULLY: "Workspace members fetched successfully",
+
+    TASKS_FETCHED_SUCCESSFULLY: "Workspace tasks fetched successfully",
+
+    MESSAGES_FETCHED_SUCCESSFULLY: "Workspace messages fetched successfully",
+
+    DETAILS_FETCHED_SUCCESSFULLY: "Workspace details fetched successfully",
+
+    INVALID_WORKSPACE_ID: "Invalid workspace id",
+
+    WORKSPACE_NOT_FOUND: "Workspace not found",
+
+    FORBIDDEN: "You are not a member of this workspace",
+};

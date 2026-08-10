@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import Button from '../../components/ui/Button.jsx';
@@ -36,6 +37,10 @@ const DEADLINE_OPTIONS = [
 ];
 
 export default function DeveloperTasks() {
+  const [searchParams] = useSearchParams();
+  const urlTaskId = searchParams.get('taskId');
+  const urlStartupId = searchParams.get('startupId') || searchParams.get('projectId');
+
   const { projects, loadProjects } = useDeveloper();
   const { tasks, loading: tasksLoading, loadMyTasks, pagination } = useTask();
 
@@ -53,6 +58,14 @@ export default function DeveloperTasks() {
     loadProjects();
   }, [loadProjects]);
 
+  useEffect(() => {
+    if (!urlStartupId || projects.length === 0) return;
+    const match = projects.find((p) => String(p.id) === String(urlStartupId));
+    if (match) {
+      setProjectFilter(String(match.id));
+    }
+  }, [urlStartupId, projects]);
+
   // Any filter change starts the list back at page 1.
   useEffect(() => {
     setPage(1);
@@ -69,6 +82,14 @@ export default function DeveloperTasks() {
       limit: PAGE_SIZE,
     });
   }, [loadMyTasks, search, statusFilter, priorityFilter, deadlineFilter, projectFilter, page]);
+
+  useEffect(() => {
+    if (!urlTaskId || tasks.length === 0) return;
+    const target = tasks.find((t) => String(t.id) === String(urlTaskId));
+    if (target) {
+      setSelectedTask(target);
+    }
+  }, [urlTaskId, tasks]);
 
   const totalPages = pagination?.totalPages ?? 1;
   const totalTasks = pagination?.total ?? tasks.length;

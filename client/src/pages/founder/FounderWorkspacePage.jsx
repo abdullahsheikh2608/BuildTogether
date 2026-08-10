@@ -6,10 +6,7 @@ import Button from "../../components/ui/Button.jsx";
 import Input from "../../components/ui/Input.jsx";
 import EmptyState from "../../components/ui/EmptyState.jsx";
 import { useStartup } from "../../hooks/useStartup.js";
-import { useTask } from "../../hooks/useTask.js";
-import { useMember } from "../../hooks/useMember.js";
-import { useChat } from "../../hooks/useChat.js";
-import { useDebounce } from "../../hooks/useDebounce.js";
+import { getWorkspaceOverview } from "../../services/workspace.service.js";
 
 export default function FounderWorkspacePage() {
   const { startupId: routeStartupId } = useParams();
@@ -17,19 +14,15 @@ export default function FounderWorkspacePage() {
   const urlStartupId = routeStartupId || searchParams.get("startupId") || searchParams.get("projectId");
 
   const { startups, loadStartups } = useStartup();
-  const { tasks, loading: tasksLoading, loadStartupTasks } = useTask();
-  const { members, loading: membersLoading, loadMembers } = useMember();
-  const { messages, loading: messagesLoading, loadMessages, setMessages } = useChat();
 
   const [selectedStartupId, setSelectedStartupId] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const search = useDebounce(searchInput, 400);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewData, setOverviewData] = useState(null);
 
   useEffect(() => {
-    if (startups.length === 0) {
-      loadStartups();
-    }
-  }, [loadStartups, startups.length]);
+    loadStartups();
+  }, [loadStartups]);
 
   useEffect(() => {
     if (startups.length === 0) return;
@@ -53,20 +46,43 @@ export default function FounderWorkspacePage() {
   useEffect(() => {
     if (!selectedStartupId) return;
 
-    loadStartupTasks(selectedStartupId, search);
-    loadMembers(selectedStartupId, "");
-    setMessages([]);
-    loadMessages(selectedStartupId);
-  }, [selectedStartupId, loadStartupTasks, loadMembers, loadMessages, search, setMessages]);
+    let isMounted = true;
+    setOverviewLoading(true);
 
-  const startup = useMemo(
-    () => startups.find((item) => String(item.id) === String(selectedStartupId)),
-    [startups, selectedStartupId]
-  );
+    getWorkspaceOverview(selectedStartupId)
+      .then((data) => {
+        if (isMounted) {
+          setOverviewData(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load founder workspace overview:", err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setOverviewLoading(false);
+        }
+      });
 
-  const loading = tasksLoading || membersLoading || messagesLoading;
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedStartupId]);
+
+  const startup = overviewData?.project || startups.find((item) => String(item.id) === String(selectedStartupId));
+  const members = overviewData?.members || [];
+  const tasks = overviewData?.tasks || [];
+  const messages = overviewData?.messages || [];
+
+  const displayedTasks = useMemo(() => {
+    if (!searchInput.trim()) return tasks;
+    const term = searchInput.toLowerCase();
+    return tasks.filter((t) => t.title?.toLowerCase().includes(term) || t.description?.toLowerCase().includes(term));
+  }, [tasks, searchInput]);
+
+  const loading = overviewLoading;
   const completionRate = tasks.length ? Math.round((tasks.filter((task) => task.status === "done").length / tasks.length) * 100) : 0;
-  const upcomingTasks = tasks.slice(0, 5);
+  const upcomingTasks = displayedTasks.slice(0, 5);
   const recentMembers = members.slice(0, 4);
   const previewMessages = messages.slice(-3);
 

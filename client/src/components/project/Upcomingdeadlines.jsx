@@ -1,8 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import { getDeadlineStatus } from "../../utils/deadline.js";
 
 const MAX_VISIBLE_TASKS = 15;
 
 export default function UpcomingDeadlines({ tasks = [] }) {
+    const navigate = useNavigate();
+
     const upcomingTasks = tasks
         .filter((task) => task.deadline && task.status !== "done")
         .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
@@ -27,7 +30,8 @@ export default function UpcomingDeadlines({ tasks = [] }) {
                     return (
                         <div
                             key={task.id}
-                            className="flex items-center justify-between gap-4 rounded-lg border border-blueprint-line px-4 py-3"
+                            onClick={() => navigate(`/dashboard/tasks?taskId=${task.id}`)}
+                            className="flex items-center justify-between gap-4 rounded-lg border border-blueprint-line px-4 py-3 cursor-pointer hover:border-cyan/40 hover:bg-blueprint-800/40 transition-all"
                         >
                             <div className="min-w-0">
                                 <p className="truncate text-sm font-medium text-paper">

@@ -18,23 +18,36 @@ export function NotificationsProvider({ children }) {
     const [error, setError] = useState("");
 
     const pollRef = useRef(null);
+    const fetchPromiseRef = useRef(null);
 
-    const loadNotifications = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError("");
-
-            const data = await getMyNotifications();
-
-            setNotifications(Array.isArray(data) ? data : []);
-        } catch (err) {
-            setError(
-                err?.response?.data?.message ??
-                    "Unable to load notifications."
-            );
-        } finally {
-            setLoading(false);
+    const loadNotifications = useCallback(async (force = false) => {
+        if (fetchPromiseRef.current && !force) {
+            return fetchPromiseRef.current;
         }
+
+        const promise = (async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const data = await getMyNotifications();
+                const list = Array.isArray(data) ? data : [];
+                setNotifications(list);
+                return list;
+            } catch (err) {
+                setError(
+                    err?.response?.data?.message ??
+                        "Unable to load notifications."
+                );
+                return [];
+            } finally {
+                setLoading(false);
+                fetchPromiseRef.current = null;
+            }
+        })();
+
+        fetchPromiseRef.current = promise;
+        return promise;
     }, []);
 
     const markAsRead = useCallback(async (id) => {

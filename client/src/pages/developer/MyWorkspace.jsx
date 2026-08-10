@@ -1,26 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { Briefcase, Sparkles, MessageSquare, Users, ListChecks } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Briefcase, Sparkles, MessageSquare, Users, ListChecks, ArrowRight } from "lucide-react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import Button from "../../components/ui/Button.jsx";
 import Input from "../../components/ui/Input.jsx";
 import EmptyState from "../../components/ui/EmptyState.jsx";
 import ExpandableText from "../../components/ui/ExpandableText.jsx";
 import { useDeveloper } from "../../hooks/useDeveloper.js";
-import { useTask } from "../../hooks/useTask.js";
-import { useMember } from "../../hooks/useMember.js";
-import { useChat } from "../../hooks/useChat.js";
-import { useDebounce } from "../../hooks/useDebounce.js";
+import { getWorkspaceOverview } from "../../services/workspace.service.js";
 
 export default function MyWorkspace() {
+  const { startupId: routeStartupId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlStartupId = routeStartupId || searchParams.get("startupId") || searchParams.get("projectId");
+
   const { projects, loadProjects } = useDeveloper();
-  const { tasks, loading: tasksLoading, loadStartupTasks } = useTask();
-  const { members, loading: membersLoading, loadMembers } = useMember();
-  const { messages, loading: messagesLoading, loadMessages, setMessages } = useChat();
 
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const search = useDebounce(searchInput, 400);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewData, setOverviewData] = useState(null);
 
   useEffect(() => {
     loadProjects();
@@ -33,28 +32,59 @@ export default function MyWorkspace() {
 
   useEffect(() => {
     if (acceptedProjects.length === 0) return;
-    setSelectedProjectId((current) => current || String(acceptedProjects[0].id));
-  }, [acceptedProjects]);
+    const match = acceptedProjects.find((p) => String(p.id) === String(urlStartupId));
+    const targetId = match ? String(match.id) : String(acceptedProjects[0].id);
+    setSelectedProjectId((current) => current || targetId);
+  }, [acceptedProjects, urlStartupId]);
+
+  const handleProjectChange = (e) => {
+    const newId = e.target.value;
+    setSelectedProjectId(newId);
+    setSearchParams({ startupId: newId }, { replace: true });
+  };
 
   useEffect(() => {
     if (!selectedProjectId) return;
 
-    loadStartupTasks(selectedProjectId, search);
-    loadMembers(selectedProjectId, "");
-    setMessages([]);
-    loadMessages(selectedProjectId);
-  }, [selectedProjectId, loadStartupTasks, loadMembers, loadMessages, search, setMessages]);
+    let isMounted = true;
+    setOverviewLoading(true);
 
-  const project = useMemo(
-    () => acceptedProjects.find((item) => String(item.id) === String(selectedProjectId)),
-    [acceptedProjects, selectedProjectId]
-  );
+    getWorkspaceOverview(selectedProjectId)
+      .then((data) => {
+        if (isMounted) {
+          setOverviewData(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load workspace overview:", err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setOverviewLoading(false);
+        }
+      });
 
-  const loading = tasksLoading || membersLoading || messagesLoading;
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProjectId]);
+
+  const project = overviewData?.project || acceptedProjects.find((item) => String(item.id) === String(selectedProjectId));
+  const members = overviewData?.members || [];
+  const tasks = overviewData?.tasks || [];
+  const messages = overviewData?.messages || [];
+
+  const displayedTasks = useMemo(() => {
+    if (!searchInput.trim()) return tasks;
+    const term = searchInput.toLowerCase();
+    return tasks.filter((t) => t.title?.toLowerCase().includes(term) || t.description?.toLowerCase().includes(term));
+  }, [tasks, searchInput]);
+
+  const loading = overviewLoading;
   const completionRate = tasks.length
     ? Math.round((tasks.filter((task) => task.status === "done").length / tasks.length) * 100)
     : 0;
-  const upcomingTasks = tasks.slice(0, 5);
+  const upcomingTasks = displayedTasks.slice(0, 5);
   const recentMembers = members.slice(0, 4);
   const previewMessages = messages.slice(-3);
 
@@ -78,7 +108,7 @@ export default function MyWorkspace() {
           />
           <select
             value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
+            onChange={handleProjectChange}
             className="rounded-lg border border-blueprint-line bg-white py-2 px-3 text-sm outline-none focus:border-cyan focus:ring-2 focus:ring-cyan/20"
           >
             {acceptedProjects.map((item) => (
@@ -148,7 +178,7 @@ export default function MyWorkspace() {
                   </div>
                 </div>
                 <div className="mt-5 flex flex-col gap-3">
-                  <Button as={Link} to="/dashboard/ai">
+                  <Button as={Link} to={`/dashboard/ai${selectedProjectId ? `?startupId=${selectedProjectId}` : ""}`}>
                     Open AI Assistant
                   </Button>
                 </div>
@@ -175,7 +205,7 @@ export default function MyWorkspace() {
                   )}
                 </div>
                 <div className="mt-5">
-                  <Button as={Link} to="/dashboard/chat">
+                  <Button as={Link} to={`/dashboard/chat${selectedProjectId ? `?startupId=${selectedProjectId}` : ""}`}>
                     Open Team Chat
                   </Button>
                 </div>
@@ -185,16 +215,29 @@ export default function MyWorkspace() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="blueprint-card p-6">
-              <div className="flex items-center gap-2">
-                <ListChecks size={18} className="text-cyan" />
-                <h3 className="font-display text-lg font-semibold text-paper">Recent Tasks</h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ListChecks size={18} className="text-cyan" />
+                  <h3 className="font-display text-lg font-semibold text-paper">Recent Tasks</h3>
+                </div>
+                <Link
+                  to={`/dashboard/tasks${selectedProjectId ? `?startupId=${selectedProjectId}` : ""}`}
+                  className="flex items-center gap-1 text-xs font-medium text-cyan transition hover:text-cyan/80"
+                >
+                  View all
+                  <ArrowRight size={13} />
+                </Link>
               </div>
               <div className="mt-5 space-y-3">
                 {upcomingTasks.length === 0 ? (
                   <p className="text-sm text-paper-dim">No tasks available yet.</p>
                 ) : (
                   upcomingTasks.map((task) => (
-                    <div key={task.id} className="rounded-2xl border border-blueprint-line bg-blueprint-900/40 p-4">
+                    <Link
+                      key={task.id}
+                      to={`/dashboard/tasks?taskId=${task.id}&startupId=${selectedProjectId}`}
+                      className="block rounded-2xl border border-blueprint-line bg-blueprint-900/40 p-4 transition-colors hover:bg-blueprint-800/60"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-paper">{task.title}</p>
@@ -202,7 +245,7 @@ export default function MyWorkspace() {
                         </div>
                         <span className="rounded-full bg-blueprint-800 px-2 py-1 text-xs font-medium text-paper-dim">{task.status}</span>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>

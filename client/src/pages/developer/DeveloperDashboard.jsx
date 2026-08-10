@@ -168,7 +168,7 @@ export default function DeveloperDashboard() {
                             <div className="flex items-center justify-between">
                                 <h3 className="font-display text-base font-semibold text-paper">My Tasks</h3>
                                 <button
-                                    onClick={() => navigate("/dashboard/projects")}
+                                    onClick={() => navigate("/dashboard/tasks")}
                                     className="flex items-center gap-1 text-xs font-medium text-cyan transition hover:text-cyan/80 cursor-pointer"
                                 >
                                     View all tasks
@@ -186,7 +186,11 @@ export default function DeveloperDashboard() {
                                         const deadlineStatus = getDeadlineStatus(task.deadline, task.status);
 
                                         return (
-                                            <div key={task.id} className="flex items-center gap-4 py-3.5 first:pt-0 last:pb-0">
+                                            <div
+                                                key={task.id}
+                                                onClick={() => navigate(`/dashboard/tasks?taskId=${task.id}`)}
+                                                className="flex items-center gap-4 py-3.5 px-2 first:pt-2 last:pb-2 cursor-pointer hover:bg-blueprint-800/40 rounded-xl transition-colors"
+                                            >
                                                 <span
                                                     className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium capitalize ${
                                                         PRIORITY_STYLES[task.priority] ?? PRIORITY_STYLES.low
@@ -234,7 +238,7 @@ export default function DeveloperDashboard() {
                                     recentProjects.map((project) => (
                                         <button
                                             key={project.id}
-                                            onClick={() => navigate("/dashboard/projects")}
+                                            onClick={() => navigate(`/dashboard/workspace/${project.id}`)}
                                             className="flex items-center justify-between gap-3 rounded-lg px-2 py-3 text-left transition-colors duration-200 hover:bg-blueprint-800 cursor-pointer"
                                         >
                                             <div className="min-w-0">
