@@ -9,13 +9,20 @@ export function useTask() {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [pagination, setPagination] = useState(null);
 
-    const loadStartupTasks = useCallback(async (startupId) => {
+    const loadStartupTasks = useCallback(async (
+    startupId,
+    search = ""
+    ) => {
         try {
             setLoading(true);
             setError("");
 
-            const data = await getStartupTasks(startupId);
+            const data = await getStartupTasks(
+            startupId,
+            search
+        );
 
             setTasks(Array.isArray(data) ? data : []);
         } catch (err) {
@@ -28,14 +35,15 @@ export function useTask() {
         }
     }, []);
 
-    const loadMyTasks = useCallback(async () => {
+    const loadMyTasks = useCallback(async (params = {}) => {
         try {
             setLoading(true);
             setError("");
 
-            const data = await getMyTasks();
+            const { tasks: data, pagination: paginationData } = await getMyTasks(params);
 
             setTasks(Array.isArray(data) ? data : []);
+            setPagination(paginationData ?? null);
         } catch (err) {
             setError(
                 err?.response?.data?.message ??
@@ -50,6 +58,7 @@ export function useTask() {
         tasks,
         loading,
         error,
+        pagination,
         loadStartupTasks,
         loadMyTasks,
         setTasks,

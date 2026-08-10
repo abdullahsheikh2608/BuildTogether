@@ -1,7 +1,19 @@
 import api from "../api/axios";
 
-export const getStartupMembers = async (startupId) => {
-    const response = await api.get(`/members/startups/${startupId}/members`);
+export const getStartupMembers = async (
+    startupId,
+    search = ""
+) => {
+
+    const response = await api.get(
+        `/members/startups/${startupId}/members`,
+        {
+            params: {
+                search,
+            },
+        }
+    );
+
     return response.data.data;
 };
 

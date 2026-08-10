@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Mail, ArrowRight } from 'lucide-react';
+
 import AuthLayout from '../../layouts/AuthLayout.jsx';
-import Input from '../../components/ui/Input.jsx';
-import Button from '../../components/ui/Button.jsx';
+import AuthInput from '../../components/auth/AuthInput.jsx';
+import PasswordInput from '../../components/auth/PasswordInput.jsx';
+import AuthButton from '../../components/auth/AuthButton.jsx';
 import { useAuth } from '../../hooks/useAuth.js';
 
 export default function Login() {
@@ -11,6 +14,7 @@ export default function Login() {
   const location = useLocation();
 
   const [form, setForm] = useState({ email: '', password: '' });
+  const [keepSignedIn, setKeepSignedIn] = useState(true);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -34,47 +38,69 @@ export default function Login() {
 
   return (
     <AuthLayout
-      eyebrow="Sign in"
-      title="Welcome back"
-      subtitle="Enter your credentials to open your dashboard."
+      eyebrow="WELCOME BACK"
+      title={
+        <>
+          Sign in to your account
+          <span className="text-auth-blue-bright">.</span>
+        </>
+      }
+      subtitle="Build better products. Together."
+      visualVariant="login"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <Input
+        <AuthInput
           id="email"
           name="email"
           type="email"
-          label="Email"
+          label="Email address"
           placeholder="you@example.com"
+          icon={Mail}
           value={form.email}
           onChange={handleChange}
           required
         />
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           label="Password"
-          placeholder="••••••••"
+          placeholder="Enter your password"
           value={form.password}
           onChange={handleChange}
           required
         />
 
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 text-sm text-auth-text-dim">
+            <input
+              type="checkbox"
+              checked={keepSignedIn}
+              onChange={(e) => setKeepSignedIn(e.target.checked)}
+              className="h-4 w-4 rounded border-auth-border bg-auth-input text-auth-blue-bright focus:ring-auth-blue-bright/30"
+            />
+            Keep me signed in
+          </label>
+          <Link to="/forgot-password" className="text-sm font-medium text-auth-blue-bright hover:underline">
+            Forgot password?
+          </Link>
+        </div>
+
         {error && (
-          <p className="rounded-sm border border-ink-red/40 bg-ink-red/10 px-3 py-2 font-mono text-xs text-ink-red">
+          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-400">
             {error}
           </p>
         )}
 
-        <Button type="submit" loading={submitting} className="mt-2 w-full">
+        <AuthButton type="submit" variant="primary" loading={submitting} className="w-full">
           Sign in
-        </Button>
+          <ArrowRight size={16} />
+        </AuthButton>
       </form>
 
-      <p className="mt-6 text-center text-sm text-paper-dim">
-        New to BuildTogether?{' '}
-        <Link to="/register" className="font-medium text-cyan hover:underline">
-          Create an account
+      <p className="mt-7 text-center text-sm text-auth-text-dim">
+        Don't have an account?{' '}
+        <Link to="/register" className="font-medium text-auth-blue-bright hover:underline">
+          Create one
         </Link>
       </p>
     </AuthLayout>

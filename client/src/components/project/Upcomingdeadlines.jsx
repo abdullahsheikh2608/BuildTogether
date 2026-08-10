@@ -1,10 +1,7 @@
 import { getDeadlineStatus } from "../../utils/deadline.js";
 
-const MAX_VISIBLE_TASKS = 5;
+const MAX_VISIBLE_TASKS = 15;
 
-// Shows the tasks with the nearest upcoming deadlines, excluding completed
-// ones. Reusable anywhere a list of `tasks` (each with title/deadline/status)
-// is available — currently used on the developer dashboard.
 export default function UpcomingDeadlines({ tasks = [] }) {
     const upcomingTasks = tasks
         .filter((task) => task.deadline && task.status !== "done")
@@ -16,13 +13,13 @@ export default function UpcomingDeadlines({ tasks = [] }) {
     }
 
     return (
-        <div className="blueprint-card rounded-xl p-6">
+        <div className="blueprint-card p-6">
 
-            <h2 className="font-display text-lg font-semibold text-paper">
+            <h2 className="font-display text-base font-semibold text-paper">
                 Upcoming Deadlines
             </h2>
 
-            <div className="mt-4 flex flex-col gap-3">
+            <div className="mt-4 flex max-h-80 flex-col gap-3 overflow-y-auto pr-1">
 
                 {upcomingTasks.map((task) => {
                     const deadlineStatus = getDeadlineStatus(task.deadline, task.status);
@@ -33,7 +30,7 @@ export default function UpcomingDeadlines({ tasks = [] }) {
                             className="flex items-center justify-between gap-4 rounded-lg border border-blueprint-line px-4 py-3"
                         >
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-paper">
+                                <p className="truncate text-sm font-medium text-paper">
                                     {task.title}
                                 </p>
                                 <p className="mt-0.5 truncate text-xs text-cyan">
@@ -44,7 +41,7 @@ export default function UpcomingDeadlines({ tasks = [] }) {
                                 </p>
                             </div>
 
-                            <span className={`shrink-0 rounded px-3 py-1 text-xs font-semibold ${deadlineStatus.badgeClass}`}>
+                            <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${deadlineStatus.badgeClass}`}>
                                 {deadlineStatus.label}
                             </span>
                         </div>

@@ -10,21 +10,21 @@ export function getDeadlineStatus(deadline, status) {
     }
 
     if (status === "done") {
-        return { label: "Completed", badgeClass: "bg-emerald-500/20 text-emerald-300" };
+        return { label: "Completed", badgeClass: "bg-[#DCFCE7] text-ink-green" };
     }
 
     const hoursRemaining = (new Date(deadline).getTime() - Date.now()) / MS_PER_HOUR;
 
     if (hoursRemaining < 0) {
-        return { label: "Overdue", badgeClass: "bg-red-500/20 text-red-300" };
+        return { label: "Overdue", badgeClass: "bg-[#FEE2E2] text-ink-red" };
     }
 
     if (hoursRemaining <= 24) {
-        return { label: "Due today", badgeClass: "bg-amber-500/20 text-amber-300" };
+        return { label: "Due today", badgeClass: "bg-amber-dim text-amber" };
     }
 
     if (hoursRemaining <= DUE_SOON_WINDOW_HOURS) {
-        return { label: "Due soon", badgeClass: "bg-amber-500/20 text-amber-300" };
+        return { label: "Due soon", badgeClass: "bg-amber-dim text-amber" };
     }
 
     return { label: "On track", badgeClass: "bg-blueprint-800 text-paper-dim" };

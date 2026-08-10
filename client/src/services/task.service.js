@@ -1,13 +1,28 @@
 import api from "../api/axios";
 
-export const getStartupTasks = async (startupId) => {
-    const response = await api.get(`/tasks/startup/${startupId}`);
+export const getStartupTasks = async (
+    startupId,
+    search = ""
+) => {
+
+    const response = await api.get(
+        `/tasks/startup/${startupId}`,
+        {
+            params: {
+                search,
+            },
+        }
+    );
+
     return response.data.data;
 };
 
-export const getMyTasks = async () => {
-    const response = await api.get("/tasks");
-    return response.data.data;
+export const getMyTasks = async (params = {}) => {
+    const response = await api.get("/tasks", { params });
+    return {
+        tasks: response.data.data,
+        pagination: response.data.pagination,
+    };
 };
 
 export const createTask = async (payload) => {

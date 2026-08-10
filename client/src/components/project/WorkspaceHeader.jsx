@@ -1,3 +1,4 @@
+import { Users, ListChecks, CircleDot } from "lucide-react";
 import Button from "../ui/Button.jsx";
 
 export default function WorkspaceHeader({
@@ -7,57 +8,62 @@ export default function WorkspaceHeader({
     onAssignTask,
 }) {
     return (
-        <div className="blueprint-card animate-draft-in rounded-xl p-6">
+        <div className="blueprint-card animate-draft-in p-6">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <p className="font-mono text-xs uppercase tracking-widest text-cyan">
+                    <p className="text-sm font-medium text-cyan">
                         Project Workspace
                     </p>
 
-                    <h1 className="mt-2 font-display text-3xl font-bold text-paper">
+                    <h1 className="mt-1 font-display text-3xl font-bold text-paper">
                         {startup?.title || "Startup Workspace"}
                     </h1>
 
-                    <p className="mt-2 max-w-2xl text-paper-dim">
+                    <p className="mt-1.5 max-w-2xl text-sm text-paper-dim">
                         {startup?.tagline ||
                             "Manage your project, assign tasks and collaborate with your team."}
                     </p>
                 </div>
 
-                <Button onClick={onAssignTask}>
-                    Assign Task
-                </Button>
+                {onAssignTask && (
+                    <Button onClick={onAssignTask}>
+                        Assign Task
+                    </Button>
+                )}
             </div>
 
-            <div className="mt-8 grid grid-cols-3 gap-4">
-                <div className="rounded-lg border border-blueprint-line bg-blueprint-800 p-4">
-                    <p className="font-mono text-xs uppercase tracking-wider text-paper-faint">
-                        Members
-                    </p>
+            <div className="mt-6 grid grid-cols-3 gap-4">
+                <div className="rounded-lg border border-blueprint-line bg-blueprint-800/50 p-4">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-paper-faint">
+                        <Users size={14} />
+                        <span>Members</span>
+                    </div>
 
-                    <h2 className="mt-2 text-3xl font-bold text-cyan">
+                    <p className="mt-2 font-display text-2xl font-bold text-paper">
                         {membersCount}
-                    </h2>
+                    </p>
                 </div>
 
-                <div className="rounded-lg border border-blueprint-line bg-blueprint-800 p-4">
-                    <p className="font-mono text-xs uppercase tracking-wider text-paper-faint">
-                        Tasks
-                    </p>
+                <div className="rounded-lg border border-blueprint-line bg-blueprint-800/50 p-4">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-paper-faint">
+                        <ListChecks size={14} />
+                        <span>Tasks</span>
+                    </div>
 
-                    <h2 className="mt-2 text-3xl font-bold text-amber">
+                    <p className="mt-2 font-display text-2xl font-bold text-paper">
                         {tasksCount}
-                    </h2>
+                    </p>
                 </div>
 
-                <div className="rounded-lg border border-blueprint-line bg-blueprint-800 p-4">
-                    <p className="font-mono text-xs uppercase tracking-wider text-paper-faint">
-                        Status
-                    </p>
+                <div className="rounded-lg border border-blueprint-line bg-blueprint-800/50 p-4">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-paper-faint">
+                        <CircleDot size={14} />
+                        <span>Status</span>
+                    </div>
 
-                    <h2 className="mt-2 text-lg font-bold text-ink-green">
+                    <p className="mt-2 font-display text-lg font-bold text-ink-green">
                         Active
-                    </h2>
+                    </p>
                 </div>
             </div>
         </div>

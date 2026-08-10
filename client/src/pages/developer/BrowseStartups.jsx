@@ -73,8 +73,8 @@ export default function BrowseStartups() {
   const goToNextPage = () => setPage((prev) => prev + 1);
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <main className="mx-auto max-w-6xl px-6 py-10">
+    <div className="w-full">
+      <main className="w-full">
         <span className="font-mono text-xs font-semibold uppercase tracking-widest text-cyan">
           Developer
         </span>
@@ -128,7 +128,7 @@ export default function BrowseStartups() {
               }
             />
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2 items-stretch">
               {startupList.map((startup) => (
                 <DeveloperStartupCard key={startup.id} startup={startup} />
               ))}

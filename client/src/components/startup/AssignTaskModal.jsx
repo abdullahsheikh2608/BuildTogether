@@ -85,7 +85,7 @@ export default function AssignTaskModal({
 
                 {members.length === 0 ? (
                     <p className="rounded-sm border border-amber/40 bg-amber/10 px-3 py-2 font-mono text-xs text-amber">
-                        No accepted developers on this project yet — accept an application first.
+                        No accepted developers on this project yet. Accept an application first.
                     </p>
                 ) : (
                     <Select

@@ -1,8 +1,12 @@
 const VARIANTS = {
-  primary: 'bg-amber text-blueprint-950 hover:bg-cyan border-transparent',
-  outline: 'bg-transparent text-cyan border-cyan hover:bg-cyan/10',
-  ghost: 'bg-transparent text-paper-dim border-transparent hover:text-paper hover:bg-white/5',
-  danger: 'bg-transparent text-ink-red border-ink-red hover:bg-ink-red/10',
+  primary:
+    'bg-cyan text-white border-transparent shadow-sm hover:bg-cyan/90 hover:shadow-md',
+  outline:
+    'bg-white text-paper border-blueprint-line hover:border-cyan/40 hover:bg-cyan-dim/40 hover:text-cyan',
+  ghost:
+    'bg-transparent text-paper-dim border-transparent hover:bg-blueprint-800 hover:text-paper',
+  danger:
+    'bg-ink-red text-white border-transparent shadow-sm hover:bg-ink-red/90',
 };
 
 export default function Button({
@@ -17,9 +21,10 @@ export default function Button({
   return (
     <Tag
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-sm border-2 px-5 py-2.5
-        font-mono text-sm font-semibold uppercase tracking-wide transition-colors duration-150
-        disabled:cursor-not-allowed disabled:opacity-50
+      className={`inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5
+        text-sm font-medium transition-all duration-200
+        disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none
+        cursor-pointer
         ${VARIANTS[variant]} ${className}`}
       {...props}
     >

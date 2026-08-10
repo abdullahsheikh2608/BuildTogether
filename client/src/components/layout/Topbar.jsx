@@ -4,9 +4,9 @@ import { useAuth } from '../../hooks/useAuth.js';
 import LogoutModal from '../common/LogoutModal.jsx';
 import NotificationBell from './NotificationBell.jsx';
 
-import { User, LogOut, PanelLeftOpen, PanelLeftClose, Menu } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 
-export default function Topbar({ collapsed, onToggleSidebar }) {
+export default function Topbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -43,70 +43,47 @@ export default function Topbar({ collapsed, onToggleSidebar }) {
 
   return (
     <>
-      <header className="sticky top-0 z-20 flex h-20 flex-shrink-0 items-center justify-between border-b border-blueprint-line bg-blueprint-900 px-8">
-        {/* Toggle Sidebar Button */}
-        <button
-          onClick={onToggleSidebar}
-          className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-blueprint-800/80 px-3.5 py-2 text-sm font-medium text-paper transition hover:border-cyan hover:bg-blueprint-800 hover:text-cyan focus:outline-none shadow-sm cursor-pointer"
-          title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          aria-label="Toggle Sidebar"
-        >
-          {collapsed ? <Menu size={20} className="text-cyan" /> : <PanelLeftClose size={20} className="text-cyan" />}
-          <span>{collapsed ? 'Show Menu' : 'Hide Menu'}</span>
-        </button>
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-20 flex h-20 flex-shrink-0 items-center justify-end gap-4 border-b border-blueprint-line bg-white/80 px-8 backdrop-blur-md">
+        <div className="flex flex-shrink-0 items-center gap-4">
           <NotificationBell />
 
           <div className="relative" ref={menuRef}>
-          {/* Avatar Button */}
-
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="group flex items-center rounded-full transition focus:outline-none"
             aria-label="User Menu"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cyan text-lg font-bold text-black shadow-md transition group-hover:scale-105">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-cyan text-sm font-semibold text-white shadow-sm transition-transform duration-200 group-hover:scale-105">
               {initials}
             </div>
           </button>
 
-          {/* Dropdown Menu */}
-
           {menuOpen && (
-            <div className="absolute right-0 mt-3 w-60 overflow-hidden rounded-xl border border-blueprint-line bg-blueprint-900 shadow-2xl z-50">
-              {/* User Info */}
-
+            <div className="absolute right-0 mt-3 w-60 overflow-hidden rounded-xl border border-blueprint-line bg-white shadow-[var(--shadow-popover)] z-50">
               <div className="border-b border-blueprint-line px-5 py-4">
                 <h3 className="font-semibold text-paper">{user?.full_name || 'User'}</h3>
-
                 <p className="mt-1 text-sm text-paper-dim">{user?.email}</p>
               </div>
-
-              {/* Profile */}
 
               <button
                 onClick={() => {
                   navigate('/profile');
                   setMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 px-5 py-3 text-paper transition hover:bg-slate-800"
+                className="flex w-full items-center gap-3 px-5 py-3 text-sm text-paper transition-colors duration-200 hover:bg-blueprint-800"
               >
                 <User size={18} />
-
                 <span>Profile</span>
               </button>
-
-              {/* Logout */}
 
               <button
                 onClick={() => {
                   setShowLogout(true);
                   setMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 px-5 py-3 text-red-400 transition hover:bg-slate-800"
+                className="flex w-full items-center gap-3 px-5 py-3 text-sm text-ink-red transition-colors duration-200 hover:bg-ink-red/5"
               >
                 <LogOut size={18} />
-
                 <span>Logout</span>
               </button>
             </div>
@@ -114,8 +91,6 @@ export default function Topbar({ collapsed, onToggleSidebar }) {
           </div>
         </div>
       </header>
-
-      {/* Logout Confirmation Modal */}
 
       <LogoutModal
         open={showLogout}

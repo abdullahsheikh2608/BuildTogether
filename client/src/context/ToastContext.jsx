@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { CheckCircle2, XCircle, X } from "lucide-react";
 import { ToastContext } from "./toast-context.js";
 
 const AUTO_DISMISS_MS = 4000;
@@ -28,22 +29,26 @@ export function ToastProvider({ children }) {
           <div
             key={toast.id}
             role="status"
-            className={`pointer-events-auto flex min-w-[260px] items-start gap-3 rounded-sm border-2 px-4 py-3
-              font-mono text-xs shadow-lg animate-draft-in ${
+            className={`pointer-events-auto flex min-w-[280px] items-start gap-3 rounded-xl border
+              bg-white px-4 py-3.5 text-sm shadow-[var(--shadow-popover)] animate-draft-in ${
                 toast.type === "error"
-                  ? "border-ink-red bg-blueprint-900 text-ink-red"
-                  : "border-ink-green bg-blueprint-900 text-ink-green"
+                  ? "border-ink-red/20"
+                  : "border-ink-green/20"
               }`}
           >
-            <span className="mt-0.5">{toast.type === "error" ? "✕" : "✓"}</span>
+            {toast.type === "error" ? (
+              <XCircle size={18} className="mt-0.5 flex-shrink-0 text-ink-red" />
+            ) : (
+              <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-ink-green" />
+            )}
             <span className="flex-1 leading-relaxed text-paper">{toast.message}</span>
             <button
               type="button"
               onClick={() => dismissToast(toast.id)}
               aria-label="Dismiss"
-              className="text-paper-faint hover:text-paper"
+              className="text-paper-faint transition-colors duration-200 hover:text-paper"
             >
-              ×
+              <X size={16} />
             </button>
           </div>
         ))}
