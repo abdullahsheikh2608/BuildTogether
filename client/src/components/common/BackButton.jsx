@@ -1,14 +1,20 @@
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import Button from '../ui/Button.jsx';
 import { useAuth } from '../../hooks/useAuth.js';
 
-export default function BackButton() {
+export default function BackButton({ fallbackPath, className = '', label = 'Back' }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const handleBack = () => {
-    if (window.history.length > 1) {
+    if (window.history.length > 2) {
       navigate(-1);
+      return;
+    }
+
+    if (fallbackPath) {
+      navigate(fallbackPath);
       return;
     }
 
@@ -20,8 +26,13 @@ export default function BackButton() {
   };
 
   return (
-    <Button variant="ghost" onClick={handleBack} className="mb-6">
-      ← Back
+    <Button
+      variant="ghost"
+      onClick={handleBack}
+      className={`inline-flex items-center gap-2 mb-4 hover:bg-blueprint-800/50 cursor-pointer ${className}`}
+    >
+      <ArrowLeft size={16} />
+      <span>{label}</span>
     </Button>
   );
 }

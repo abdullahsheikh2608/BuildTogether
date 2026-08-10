@@ -39,38 +39,32 @@ export default function StartupDetails() {
     fetchData();
   }, [id]);
 
-  async function handleApply() {
-    try {
-      setApplying(true);
-
-      await applyToStartup({
-        startup_id: startup.id,
-      });
-
-      setAlreadyApplied(true);
-
-      alert('Application submitted successfully.');
-
-      navigate('/dashboard/applications');
-    } catch (err) {
-      alert(err.response?.data?.message || 'Unable to submit application.');
-    } finally {
-      setApplying(false);
-    }
+  function handleApply() {
+    navigate(`/dashboard/startups/${id}/apply`);
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <BackButton fallbackPath="/dashboard/startups" />
+        <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading startup details…</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="min-h-screen flex items-center justify-center">{error}</div>;
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <BackButton fallbackPath="/dashboard/startups" />
+        <p className="text-sm text-red-500">{error}</p>
+      </div>
+    );
   }
 
   return (
     <div className="mx-auto max-w-6xl">
       <main className="mx-auto max-w-5xl px-6 py-10">
-        <BackButton />
+        <BackButton fallbackPath="/dashboard/startups" />
 
         <h1 className="mt-6 text-3xl font-bold text-paper">{startup.title}</h1>
 

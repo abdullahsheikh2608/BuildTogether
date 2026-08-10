@@ -1,23 +1,31 @@
-export default function Input({ label, id, hint, error, className = '', ...props }) {
+export default function Input({ label, id, hint, error, icon: Icon, className = '', ...props }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (
-        <label
-          htmlFor={id}
-          className="font-mono text-xs font-semibold uppercase tracking-widest text-paper-dim"
-        >
+        <label htmlFor={id} className="text-sm font-medium text-paper">
           {label}
         </label>
       )}
-      <input
-        id={id}
-        className={`rounded-sm border bg-blueprint-800/60 px-3.5 py-2.5 text-sm text-paper
-          placeholder:text-paper-faint outline-none transition-colors duration-150
-          ${error ? 'border-ink-red' : 'border-blueprint-line focus:border-cyan'}`}
-        {...props}
-      />
-      {hint && !error && <span className="font-mono text-[11px] text-paper-faint">{hint}</span>}
-      {error && <span className="font-mono text-xs text-ink-red">{error}</span>}
+      <div className="relative">
+        {Icon && (
+          <Icon
+            size={16}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-paper-faint"
+          />
+        )}
+        <input
+          id={id}
+          className={`w-full rounded-lg border bg-white py-2.5 text-sm text-paper
+            placeholder:text-paper-faint outline-none transition-all duration-200
+            ${Icon ? 'pl-10 pr-3.5' : 'px-3.5'}
+            ${error
+              ? 'border-ink-red focus:ring-2 focus:ring-ink-red/20'
+              : 'border-blueprint-line focus:border-cyan focus:ring-2 focus:ring-cyan/15'}`}
+          {...props}
+        />
+      </div>
+      {hint && !error && <span className="text-xs text-paper-faint">{hint}</span>}
+      {error && <span className="text-xs text-ink-red">{error}</span>}
     </div>
   );
 }

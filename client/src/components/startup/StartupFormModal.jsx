@@ -141,8 +141,8 @@ export default function StartupFormModal({ open, onClose, onSubmit }) {
           value={form.status}
           onChange={handleChange}
           options={[
-            { value: 'open', label: 'Open — accepting applicants' },
-            { value: 'closed', label: 'Closed — not accepting applicants' },
+            { value: 'open', label: 'Open (accepting applicants)' },
+            { value: 'closed', label: 'Closed (not accepting applicants)' },
           ]}
         />
 

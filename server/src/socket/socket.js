@@ -29,6 +29,14 @@ export const initializeSocket = (socketServer) => {
                 socket.join(startupId);
             });
 
+            // Without this, a user who switches between project workspaces
+            // stays joined to every room they've ever visited in the
+            // session — meaning a message sent in Project A can leak into
+            // whatever project's chat they're currently viewing.
+            socket.on("leave_startup", (startupId) => {
+                socket.leave(startupId);
+            });
+
         });
 };
 

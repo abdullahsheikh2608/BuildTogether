@@ -3,6 +3,8 @@ import { Router } from "express";
 import {
     register,
     login,
+    forgotPassword,
+    resetPassword,
     getMe,
 } from "../controllers/auth.controller.js";
 
@@ -13,6 +15,8 @@ import {
 import {
     validateRegister,
     validateLogin,
+    validateForgotPassword,
+    validateResetPassword,
 } from "../validators/auth.validator.js";
 
 const router = Router();
@@ -20,6 +24,10 @@ const router = Router();
 router.post("/register", validateRegister, register);
 
 router.post("/login", validateLogin, login);
+
+router.post("/forgot-password", validateForgotPassword, forgotPassword);
+
+router.post("/reset-password", validateResetPassword, resetPassword);
 
 router.get(
     "/me",

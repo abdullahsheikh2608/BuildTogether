@@ -1,18 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams, useLocation } from "react-router-dom";
+import {
+    Users,
+    ListChecks,
+    Search,
+} from "lucide-react";
 
+import BackButton from "../../components/common/BackButton.jsx";
 import WorkspaceHeader from "../../components/project/WorkspaceHeader.jsx";
 import MemberCard from "../../components/project/MemberCard.jsx";
 import TaskCard from "../../components/project/TaskCard.jsx";
+import TaskDetailsPanel from "../../components/project/TaskDetailsPanel.jsx";
 
+import Button from "../../components/ui/Button.jsx";
 import AssignTaskModal from "../../components/startup/AssignTaskModal.jsx";
 
 import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
 import ChatBox from "../../components/chat/ChatBox.jsx";
 import AiAssistantPanel from "../../components/project/AiAssistantPanel.jsx";
 
-import { createTask, deleteTask } from "../../services/task.service.js";
-import { removeMember } from "../../services/member.service.js";
+import EmptyState from "../../components/ui/EmptyState.jsx";
+import Skeleton from "../../components/ui/Skeleton.jsx";
+
+import {
+    createTask,
+    deleteTask,
+} from "../../services/task.service.js";
+
+import {
+    removeMember,
+} from "../../services/member.service.js";
 
 import { useStartup } from "../../hooks/useStartup.js";
 import { useTask } from "../../hooks/useTask.js";
@@ -20,7 +37,10 @@ import { useMember } from "../../hooks/useMember.js";
 import { useToast } from "../../hooks/useToast.js";
 
 export default function ProjectWorkspace() {
+
     const { startupId } = useParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
 
     const {
         startups,
@@ -42,37 +62,126 @@ export default function ProjectWorkspace() {
     const { showToast } = useToast();
 
     const [assignModalOpen, setAssignModalOpen] = useState(false);
+
     const [creatingTask, setCreatingTask] = useState(false);
+
     const [deleteTarget, setDeleteTarget] = useState(null);
+
     const [deletingTask, setDeletingTask] = useState(false);
 
+    const [selectedTask, setSelectedTask] = useState(null);
+
+    const [memberSearch, setMemberSearch] = useState("");
+
+    const [taskSearch, setTaskSearch] = useState("");
+
+    const [debouncedMemberSearch, setDebouncedMemberSearch] =
+        useState("");
+
+    const [debouncedTaskSearch, setDebouncedTaskSearch] =
+        useState("");
+
     useEffect(() => {
+
         loadStartups();
+
     }, [loadStartups]);
 
     useEffect(() => {
+
+        const timer = setTimeout(() => {
+
+            setDebouncedMemberSearch(memberSearch);
+
+        }, 400);
+
+        return () => clearTimeout(timer);
+
+    }, [memberSearch]);
+
+        useEffect(() => {
+
+        const timer = setTimeout(() => {
+
+            setDebouncedTaskSearch(taskSearch);
+
+        }, 400);
+
+        return () => clearTimeout(timer);
+
+    }, [taskSearch]);
+
+    useEffect(() => {
+
         if (!startupId) return;
 
-        loadMembers(startupId);
-        loadStartupTasks(startupId);
+        loadMembers(
+            startupId,
+            debouncedMemberSearch
+        );
+
     }, [
         startupId,
+        debouncedMemberSearch,
         loadMembers,
+    ]);
+
+    useEffect(() => {
+
+        if (!startupId) return;
+
+        loadStartupTasks(
+            startupId,
+            debouncedTaskSearch
+        );
+
+    }, [
+        startupId,
+        debouncedTaskSearch,
         loadStartupTasks,
     ]);
 
-    const startup = useMemo(() => {
-        return startups.find(
-            (item) => String(item.id) === String(startupId)
+    // Global search deep-links here with ?taskId=... so the target task
+    // opens automatically once it's loaded.
+    useEffect(() => {
+
+        const taskId = searchParams.get("taskId");
+
+        if (!taskId || tasks.length === 0) return;
+
+        const target = tasks.find(
+            (task) => String(task.id) === String(taskId)
         );
+
+        if (!target) return;
+
+        setSelectedTask(target);
+
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete("taskId");
+        setSearchParams(nextParams, { replace: true });
+
+    }, [tasks, searchParams, setSearchParams]);
+
+    const startup = useMemo(() => {
+
+        return startups.find(
+            (item) =>
+                String(item.id) === String(startupId)
+        );
+
     }, [startups, startupId]);
 
     const loading =
         tasksLoading ||
         membersLoading;
 
+    // Deep-linking by hash removed in favor of route-based pages.
+
     const handleAssignTask = async (taskData) => {
+
         try {
+
             setCreatingTask(true);
 
             await createTask({
@@ -80,7 +189,10 @@ export default function ProjectWorkspace() {
                 startup_id: startupId,
             });
 
-            await loadStartupTasks(startupId);
+            await loadStartupTasks(
+                startupId,
+                debouncedTaskSearch
+            );
 
             setAssignModalOpen(false);
 
@@ -99,8 +211,11 @@ export default function ProjectWorkspace() {
             });
 
         } finally {
+
             setCreatingTask(false);
+
         }
+
     };
 
     const handleRemoveMember = async (member) => {
@@ -113,10 +228,20 @@ export default function ProjectWorkspace() {
 
         try {
 
-            await removeMember(startupId, member.id);
+            await removeMember(
+                startupId,
+                member.id
+            );
 
-            await loadMembers(startupId);
-            await loadStartupTasks(startupId);
+            await loadMembers(
+                startupId,
+                debouncedMemberSearch
+            );
+
+            await loadStartupTasks(
+                startupId,
+                debouncedTaskSearch
+            );
 
             showToast({
                 type: "success",
@@ -133,14 +258,21 @@ export default function ProjectWorkspace() {
             });
 
         }
+
     };
 
-    const handleDeleteTask = async () => {
+        const handleDeleteTask = async () => {
+
         try {
+
             setDeletingTask(true);
 
             await deleteTask(deleteTarget.id);
-            await loadStartupTasks(startupId);
+
+            await loadStartupTasks(
+                startupId,
+                debouncedTaskSearch
+            );
 
             setDeleteTarget(null);
 
@@ -159,120 +291,268 @@ export default function ProjectWorkspace() {
             });
 
         } finally {
+
             setDeletingTask(false);
+
         }
+
     };
 
     return (
-        <div className="mx-auto max-w-7xl space-y-8">
+
+        <div className="mx-auto max-w-7xl space-y-6">
+            <BackButton fallbackPath="/founder/startups" label="Back to Startups" />
 
             <WorkspaceHeader
                 startup={startup}
                 membersCount={members.length}
                 tasksCount={tasks.length}
-                onAssignTask={() => setAssignModalOpen(true)}
+                onAssignTask={() =>
+                    setAssignModalOpen(true)
+                }
             />
 
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div
+                className={`grid gap-6 transition-all duration-300 ${
+                    selectedTask
+                        ? "lg:grid-cols-[1fr_380px]"
+                        : "lg:grid-cols-1"
+                }`}
+            >
 
-                {/* Team Members */}
+                {/* Left Content */}
 
-                <div className="blueprint-card rounded-xl p-6">
+                <div className="space-y-6">
 
-                    <h2 className="mb-5 font-display text-xl font-semibold text-paper">
-                        Team Members
-                    </h2>
+                    <div className="grid gap-6 lg:grid-cols-3">
 
-                    {loading ? (
+                        {/* Team Members */}
 
-                        <p className="text-paper-dim">
-                            Loading members...
-                        </p>
+                        <div id="team-members" className="blueprint-card p-6">
 
-                    ) : members.length === 0 ? (
+                            <h2 className="mb-5 font-display text-lg font-semibold text-paper">
+                                Team Members
+                            </h2>
 
-                        <p className="text-paper-dim">
-                            No members found.
-                        </p>
+                            <div className="relative mb-4">
 
-                    ) : (
-
-                        <div className="space-y-4">
-
-                            {members.map((member) => (
-
-                                <MemberCard
-                                    key={member.id}
-                                    member={member}
-                                    onRemove={handleRemoveMember}
+                                <Search
+                                    size={18}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-paper-faint"
                                 />
 
-                            ))}
+                                <input
+                                    type="text"
+                                    value={memberSearch}
+                                    onChange={(e) =>
+                                        setMemberSearch(e.target.value)
+                                    }
+                                    placeholder="Search members..."
+                                    className="
+                                        w-full
+                                        rounded-lg
+                                        border
+                                        border-blueprint-line
+                                        bg-white
+                                        py-2
+                                        pl-10
+                                        pr-3
+                                        text-sm
+                                        outline-none
+                                        focus:border-cyan
+                                        focus:ring-2
+                                        focus:ring-cyan/20
+                                    "
+                                />
+
+                            </div>
+
+                            {loading ? (
+
+                                <div className="space-y-3">
+
+                                    <Skeleton
+                                        className="h-16 w-full"
+                                        rounded="rounded-xl"
+                                    />
+
+                                    <Skeleton
+                                        className="h-16 w-full"
+                                        rounded="rounded-xl"
+                                    />
+
+                                </div>
+
+                            ) : members.length === 0 ? (
+
+                                <EmptyState
+                                    icon={Users}
+                                    title="No members found"
+                                    body="Try another search or invite developers."
+                                />
+
+                            ) : (
+
+                                <div className="max-h-[520px] overflow-y-auto pr-2 space-y-3">
+
+                                    {members.map((member) => (
+
+                                        <MemberCard
+                                            key={member.id}
+                                            member={member}
+                                            onRemove={handleRemoveMember}
+                                        />
+
+                                    ))}
+
+                                </div>
+
+                            )}
 
                         </div>
 
-                    )}
+                        {/* Project Tasks */}
 
-                </div>
+                        <div id="tasks" className="blueprint-card p-6 lg:col-span-2">
 
-                {/* Tasks */}
+                            <h2 className="mb-5 font-display text-lg font-semibold text-paper">
+                                Project Tasks
+                            </h2>
 
-                <div className="blueprint-card rounded-xl p-6 lg:col-span-2">
+                            <div className="relative mb-4">
 
-                    <div className="mb-5 flex items-center justify-between">
+                                <Search
+                                    size={18}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-paper-faint"
+                                />
 
-                        <h2 className="font-display text-xl font-semibold text-paper">
-                            Project Tasks
-                        </h2>
+                                <input
+                                    type="text"
+                                    value={taskSearch}
+                                    onChange={(e) =>
+                                        setTaskSearch(e.target.value)
+                                    }
+                                    placeholder="Search tasks..."
+                                    className="
+                                        w-full
+                                        rounded-lg
+                                        border
+                                        border-blueprint-line
+                                        bg-white
+                                        py-2
+                                        pl-10
+                                        pr-3
+                                        text-sm
+                                        outline-none
+                                        focus:border-cyan
+                                        focus:ring-2
+                                        focus:ring-cyan/20
+                                    "
+                                />
+
+                            </div>
+
+                                                        {loading ? (
+
+                                <div className="space-y-3">
+
+                                    <Skeleton
+                                        className="h-24 w-full"
+                                        rounded="rounded-xl"
+                                    />
+
+                                    <Skeleton
+                                        className="h-24 w-full"
+                                        rounded="rounded-xl"
+                                    />
+
+                                </div>
+
+                            ) : tasks.length === 0 ? (
+
+                                <EmptyState
+                                    icon={ListChecks}
+                                    title="No tasks found"
+                                    body="Try another search or assign a new task."
+                                    action={
+                                        <Button
+                                            onClick={() =>
+                                                setAssignModalOpen(true)
+                                            }
+                                        >
+                                            Assign Task
+                                        </Button>
+                                    }
+                                />
+
+                            ) : (
+
+                                <div className="max-h-[520px] overflow-y-auto pr-2 space-y-4">
+
+                                    {tasks.map((task) => (
+
+                                        <TaskCard
+                                            key={task.id}
+                                            task={task}
+                                            onDelete={setDeleteTarget}
+                                            onClick={() =>
+                                                setSelectedTask(task)
+                                            }
+                                        />
+
+                                    ))}
+
+                                </div>
+
+                            )}
+
+                        </div>
 
                     </div>
 
-                    {loading ? (
+                    {/* AI Assistant */}
 
-                        <p className="text-paper-dim">
-                            Loading tasks...
-                        </p>
+                    <div id="ai-assistant">
+                        <AiAssistantPanel
+                            startupId={startupId}
+                        />
+                    </div>
 
-                    ) : tasks.length === 0 ? (
+                    {/* Team Chat */}
 
-                        <p className="text-paper-dim">
-                            No tasks available.
-                        </p>
-
-                    ) : (
-
-                        <div className="space-y-5">
-
-                            {tasks.map((task) => (
-
-                                <TaskCard
-                                    key={task.id}
-                                    task={task}
-                                    onDelete={setDeleteTarget}
-                                />
-
-                            ))}
-
-                        </div>
-
-                    )}
+                    <div id="team-chat">
+                        <ChatBox
+                            startupId={startupId}
+                        />
+                    </div>
 
                 </div>
 
+                {/* Right ClickUp Panel */}
+
+                {selectedTask && (
+
+                    <TaskDetailsPanel
+                        task={selectedTask}
+                        onClose={() =>
+                            setSelectedTask(null)
+                        }
+                    />
+
+                )}
+
             </div>
 
-            {/* AI Assistant */}
-
-            <AiAssistantPanel startupId={startupId} />
-
-            {/* Team Chat */}
-
-            <ChatBox startupId={startupId} />
-
             <AssignTaskModal
-                key={assignModalOpen ? "open" : "closed"}
+                key={
+                    assignModalOpen
+                        ? "open"
+                        : "closed"
+                }
                 open={assignModalOpen}
-                onClose={() => setAssignModalOpen(false)}
+                onClose={() =>
+                    setAssignModalOpen(false)
+                }
                 members={members}
                 onSubmit={handleAssignTask}
                 loading={creatingTask}
@@ -280,13 +560,16 @@ export default function ProjectWorkspace() {
 
             <ConfirmDialog
                 open={!!deleteTarget}
-                onClose={() => setDeleteTarget(null)}
+                onClose={() =>
+                    setDeleteTarget(null)
+                }
                 onConfirm={handleDeleteTask}
                 confirming={deletingTask}
                 title="Delete this task?"
                 body={`"${deleteTarget?.title}" will be permanently removed. This can't be undone.`}
             />
+                    </div>
 
-        </div>
     );
+
 }

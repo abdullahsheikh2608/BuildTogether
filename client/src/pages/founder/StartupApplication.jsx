@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import BackButton from '../../components/common/BackButton.jsx';
 import Button from '../../components/ui/Button.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import StampBadge from '../../components/ui/StampBadge.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
 import { getStartupById } from '../../services/startup.service.js';
+import { FileText, Eye, Check, X } from 'lucide-react';
 
 import {
   getStartupApplications,
   updateApplicationStatus,
+  getResumeDownloadUrl,
 } from '../../services/application.service.js';
 
 const SEARCH_DEBOUNCE_MS = 500;
@@ -29,24 +32,20 @@ export default function StartupApplications() {
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
 
-  // Raw text as typed by the user; debounced into `search` before hitting the API.
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-
   const [status, setStatus] = useState('all');
   const [sortBy, setSortBy] = useState('applied_at');
   const [order, setOrder] = useState('DESC');
   const [page, setPage] = useState(1);
   const [limit] = useState(DEFAULT_LIMIT);
 
-  // Startup details only need to load once per id — independent of filters.
   useEffect(() => {
     getStartupById(id)
       .then(setStartup)
       .catch(() => setError("Couldn't load applications. Refresh to try again."));
   }, [id]);
 
-  // Debounce the search input by 500ms, then reset back to page 1.
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
@@ -68,7 +67,6 @@ export default function StartupApplications() {
     setPage(1);
   };
 
-  // Refetch from the backend whenever any of the query dependencies change.
   useEffect(() => {
     let cancelled = false;
 
@@ -132,33 +130,29 @@ export default function StartupApplications() {
   const goToNextPage = () => setPage((prev) => prev + 1);
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <Link
-        to="/founder"
-        className="font-mono text-xs uppercase tracking-widest text-cyan hover:underline"
-      >
-        ← Your startups
-      </Link>
+    <div className="max-w-6xl space-y-6">
+      <BackButton fallbackPath="/founder/startups" label="Back to Startups" />
 
-      <div className="mt-4">
+      <div>
         <span className="font-mono text-xs font-semibold uppercase tracking-widest text-amber">
-          Applications
+          Applications Review
         </span>
-        <h1 className="mt-2 font-display text-2xl font-semibold text-paper">
+        <h1 className="mt-1 font-display text-2xl font-bold text-paper">
           {startup?.title ?? '…'}
         </h1>
+        {startup?.tagline && <p className="text-sm text-paper-dim">{startup.tagline}</p>}
       </div>
 
       {error && (
-        <p className="mt-6 rounded-sm border border-ink-red/40 bg-ink-red/10 px-3 py-2 font-mono text-xs text-ink-red">
+        <p className="rounded-sm border border-ink-red/40 bg-ink-red/10 px-3 py-2 font-mono text-xs text-ink-red">
           {error}
         </p>
       )}
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Input
           id="application-review-search"
-          placeholder="Search by name, username, or email..."
+          placeholder="Search by name, username, email, skills..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
@@ -176,9 +170,6 @@ export default function StartupApplications() {
           <option value="rejected" className="bg-blueprint-900">
             Rejected
           </option>
-          <option value="removed" className="bg-blueprint-900">
-            Removed
-          </option>
         </Select>
 
         <Select
@@ -194,7 +185,7 @@ export default function StartupApplications() {
         </Select>
       </div>
 
-      <div className="mt-8 flex flex-col gap-4">
+      <div className="space-y-4">
         {loading ? (
           <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading…</p>
         ) : appList.length === 0 ? (
@@ -208,7 +199,7 @@ export default function StartupApplications() {
           />
         ) : (
           appList.map((app) => (
-            <div key={app.id} className="blueprint-card animate-draft-in flex flex-col gap-3 p-5">
+            <div key={app.id} className="blueprint-card p-5 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-display text-base font-semibold text-paper">
@@ -222,38 +213,75 @@ export default function StartupApplications() {
               </div>
 
               {app.message && (
-                <p className="rounded-sm bg-blueprint-800/60 px-3 py-2 text-sm text-paper-dim">
+                <p className="rounded bg-blueprint-800/60 p-3 text-sm text-paper-dim line-clamp-3">
                   {app.message}
                 </p>
               )}
 
-              {app.status === 'pending' && (
-                <div className="flex gap-3 border-t border-blueprint-line pt-3">
-                  <Button
-                    variant="outline"
-                    className="px-3 py-1.5 text-xs"
-                    loading={updatingId === app.id}
-                    onClick={() => handleDecision(app.id, 'accepted')}
-                  >
-                    Accept
-                  </Button>
-                  <Button
-                    variant="danger"
-                    className="px-3 py-1.5 text-xs"
-                    loading={updatingId === app.id}
-                    onClick={() => handleDecision(app.id, 'rejected')}
-                  >
-                    Reject
-                  </Button>
+              {Array.isArray(app.skills) && app.skills.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {app.skills.map((skill) => (
+                    <span key={skill} className="rounded bg-cyan/20 px-2 py-0.5 text-xs text-cyan">
+                      {skill}
+                    </span>
+                  ))}
                 </div>
               )}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-blueprint-line pt-3">
+                {app.resume_filename ? (
+                  <a
+                    href={getResumeDownloadUrl(app.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 font-mono text-xs text-cyan hover:underline"
+                  >
+                    <FileText size={14} />
+                    {app.resume_filename}
+                  </a>
+                ) : (
+                  <span />
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Link to={`/founder/applications/${app.id}`}>
+                    <Button variant="outline" className="px-3 py-1 text-xs">
+                      <Eye size={14} className="mr-1" />
+                      Details
+                    </Button>
+                  </Link>
+
+                  {app.status === 'pending' && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="px-3 py-1.5 text-xs text-green-400 border-green-500/40 hover:bg-green-500/10"
+                        loading={updatingId === app.id}
+                        onClick={() => handleDecision(app.id, 'accepted')}
+                      >
+                        <Check size={14} className="mr-1" />
+                        Accept
+                      </Button>
+                      <Button
+                        variant="danger"
+                        className="px-3 py-1.5 text-xs"
+                        loading={updatingId === app.id}
+                        onClick={() => handleDecision(app.id, 'rejected')}
+                      >
+                        <X size={14} className="mr-1" />
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           ))
         )}
       </div>
 
       {!loading && appList.length > 0 && (
-        <div className="mt-8 flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2">
           <Button variant="outline" onClick={goToPreviousPage} disabled={isFirstPage}>
             Previous
           </Button>

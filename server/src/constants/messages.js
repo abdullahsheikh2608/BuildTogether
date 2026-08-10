@@ -2,11 +2,15 @@ export const AUTH_MESSAGES = {
     // Success Messages
     REGISTER_SUCCESS: "User registered successfully",
     LOGIN_SUCCESS: "Login successful",
+    RESET_CODE_SENT: "If an account with that email exists, a password reset code has been sent.",
+    PASSWORD_RESET_SUCCESS: "Password reset successfully. You can now sign in with your new password.",
 
     // Validation Messages
     ALL_FIELDS_REQUIRED: "All fields are required",
     EMAIL_REQUIRED: "Email is required",
     PASSWORD_REQUIRED: "Password is required",
+    RESET_CODE_REQUIRED: "Verification code is required",
+    INVALID_RESET_CODE_FORMAT: "Verification code must be a 6-digit number",
     INVALID_EMAIL: "Invalid email address",
     PASSWORD_MIN_LENGTH: "Password must be at least 8 characters long",
     INVALID_ROLE: "Role must be founder or developer",
@@ -15,6 +19,8 @@ export const AUTH_MESSAGES = {
     EMAIL_ALREADY_EXISTS: "Email already exists",
     USERNAME_ALREADY_EXISTS: "Username already exists",
     INVALID_CREDENTIALS: "Invalid email or password",
+    INVALID_OR_EXPIRED_RESET_CODE: "Invalid or expired verification code",
+    USER_NOT_FOUND: "No user found with this email address",
 
     // JWT Messages
     TOKEN_REQUIRED: "Access token is required",
@@ -206,4 +212,9 @@ export const PROJECT_MESSAGES = {
 
 export const DASHBOARD_MESSAGES = {
     FETCH_SUCCESSFULLY: "Dashboard analytics fetched successfully",
+};
+
+export const SEARCH_MESSAGES = {
+    FETCH_SUCCESSFULLY: "Search results fetched successfully",
+    QUERY_REQUIRED: "Search query is required",
 };

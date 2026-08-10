@@ -32,3 +32,9 @@ export const clearMeCache = () => {
 export const updateProfile = (payload) =>
 
   api.put('/profiles/me', payload).then((response) => response.data.data);
+
+export const forgotPassword = (payload) =>
+  api.post('/auth/forgot-password', payload).then((response) => response.data);
+
+export const resetPassword = (payload) =>
+  api.post('/auth/reset-password', payload).then((response) => response.data);

@@ -1,34 +1,33 @@
 const STAMPS = {
-  // Application review statuses
-  pending: { label: 'Pending Review', color: 'var(--color-amber)', rotate: '-3deg' },
-  accepted: { label: 'Accepted', color: 'var(--color-ink-green)', rotate: '-5deg' },
-  rejected: { label: 'Rejected', color: 'var(--color-ink-red)', rotate: '4deg' },
+  pending: { label: 'Pending Review', color: 'var(--color-amber)', bg: 'var(--color-amber-dim)' },
+  accepted: { label: 'Accepted', color: 'var(--color-ink-green)', bg: '#DCFCE7' },
+  rejected: { label: 'Rejected', color: 'var(--color-ink-red)', bg: '#FEE2E2' },
 
-  // Task progress statuses
-  todo: { label: 'To Do', color: 'var(--color-paper-faint)', rotate: '-3deg' },
-  in_progress: { label: 'In Progress', color: 'var(--color-cyan)', rotate: '2deg' },
-  done: { label: 'Completed', color: 'var(--color-ink-green)', rotate: '-4deg' },
+  todo: { label: 'To Do', color: 'var(--color-paper-dim)', bg: 'var(--color-blueprint-800)' },
+  in_progress: { label: 'In Progress', color: 'var(--color-cyan)', bg: 'var(--color-cyan-dim)' },
+  done: { label: 'Completed', color: 'var(--color-ink-green)', bg: '#DCFCE7' },
+
+  open: { label: 'Open', color: 'var(--color-ink-green)', bg: '#DCFCE7' },
+  closed: { label: 'Closed', color: 'var(--color-paper-dim)', bg: 'var(--color-blueprint-800)' },
 };
 
-/**
- * Renders a status like an inspector's ink stamp on a blueprint.
- * Application status: "pending" | "accepted" | "rejected"
- * Task status: "todo" | "in_progress" | "done"
- */
 export default function StampBadge({ status = 'pending' }) {
-  const stamp = STAMPS[status] ?? { label: status, color: 'var(--color-paper-faint)', rotate: '0deg' };
+  const stamp = STAMPS[status] ?? {
+    label: status,
+    color: 'var(--color-paper-dim)',
+    bg: 'var(--color-blueprint-800)',
+  };
 
   return (
     <span
-      className="inline-flex select-none items-center rounded-sm border-[3px] px-3 py-1
-        font-mono text-[11px] font-bold uppercase tracking-widest"
-      style={{
-        color: stamp.color,
-        borderColor: stamp.color,
-        transform: `rotate(${stamp.rotate})`,
-        boxShadow: `inset 0 0 0 2px color-mix(in srgb, ${stamp.color} 25%, transparent)`,
-      }}
+      className="inline-flex select-none items-center gap-1.5 rounded-full px-2.5 py-1
+        text-xs font-medium"
+      style={{ color: stamp.color, backgroundColor: stamp.bg }}
     >
+      <span
+        className="h-1.5 w-1.5 rounded-full"
+        style={{ backgroundColor: stamp.color }}
+      />
       {stamp.label}
     </span>
   );

@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { Sparkles, TrendingUp, Loader2 } from "lucide-react";
 
-import Button from "../ui/Button.jsx";
 import Modal from "../common/Modal.jsx";
 
 import { useToast } from "../../hooks/useToast.js";
@@ -13,14 +13,41 @@ import {
 // A small stat pill used inside the weekly report modal.
 function StatPill({ label, value }) {
     return (
-        <div className="rounded-sm border border-white/10 bg-blueprint-800/50 px-3 py-2 text-center">
+        <div className="rounded-lg border border-blueprint-line bg-blueprint-800/50 px-3 py-2.5 text-center">
             <p className="font-display text-lg font-semibold text-paper">
                 {value}
             </p>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-paper-faint">
+            <p className="text-[11px] font-medium text-paper-faint">
                 {label}
             </p>
         </div>
+    );
+}
+
+// A single clickable AI action tile — icon badge, title, short description.
+// Clicking the whole card triggers the action, showing an inline spinner
+// instead of navigating away, so it's obvious which action is running.
+function AiActionCard({ icon: Icon, title, description, busy, disabled, onClick }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            className="card-interactive flex items-start gap-4 rounded-xl border border-blueprint-line bg-white p-5 text-left transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-dim">
+                {busy ? (
+                    <Loader2 size={18} className="animate-spin text-cyan" />
+                ) : (
+                    <Icon size={18} className="text-cyan" />
+                )}
+            </div>
+
+            <div>
+                <p className="font-semibold text-paper">{title}</p>
+                <p className="mt-0.5 text-sm text-paper-dim">{description}</p>
+            </div>
+        </button>
     );
 }
 
@@ -90,36 +117,39 @@ export default function AiAssistantPanel({ startupId }) {
     };
 
     return (
-        <div className="blueprint-card rounded-xl p-6">
+        <div className="blueprint-card p-6">
 
-            <h2 className="font-display text-xl font-semibold text-paper">
-                AI Assistant
-            </h2>
+            <div className="flex items-center gap-2">
+                <Sparkles size={18} className="text-cyan" />
+                <h2 className="font-display text-lg font-semibold text-paper">
+                    AI Assistant
+                </h2>
+            </div>
 
-            <p className="mt-2 text-sm text-paper-dim">
+            <p className="mt-1.5 text-sm text-paper-dim">
                 Generate an AI-written summary or progress report for this
                 project, based on its current data.
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
 
-                <Button
-                    variant="outline"
+                <AiActionCard
+                    icon={Sparkles}
+                    title="Project Summary"
+                    description="A concise AI overview of what this project is about."
+                    busy={loadingType === "summary"}
+                    disabled={isBusy}
                     onClick={handleGenerateSummary}
-                    loading={loadingType === "summary"}
-                    disabled={isBusy}
-                >
-                    Generate Summary
-                </Button>
+                />
 
-                <Button
-                    variant="outline"
-                    onClick={handleGenerateWeeklyReport}
-                    loading={loadingType === "report"}
+                <AiActionCard
+                    icon={TrendingUp}
+                    title="Weekly Report"
+                    description="Progress, overdue items, and what's coming up."
+                    busy={loadingType === "report"}
                     disabled={isBusy}
-                >
-                    Generate Weekly Report
-                </Button>
+                    onClick={handleGenerateWeeklyReport}
+                />
 
             </div>
 
@@ -137,7 +167,7 @@ export default function AiAssistantPanel({ startupId }) {
                     </div>
                 )}
 
-                <p className="whitespace-pre-wrap text-sm text-paper-dim">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-paper-dim">
                     {resultText}
                 </p>
 

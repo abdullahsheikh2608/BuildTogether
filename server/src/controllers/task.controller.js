@@ -43,7 +43,12 @@ const taskController = {
     getStartupTasks: async (req, res, next) => {
         try {
             const { startupId } = req.params;
-            const result = await taskService.getStartupTasks(startupId, req.user.id);
+            const { search = "" } = req.query;
+            const result = await taskService.getStartupTasks(
+            startupId,
+            req.user.id,
+            search
+        );
 
             if (result === "STARTUP_NOT_FOUND") {
                 return res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -71,12 +76,23 @@ const taskController = {
 
     getMyTasks: async (req, res, next) => {
         try {
-            const tasks = await taskService.getMyTasks(req.user.id);
+            const { search, status, priority, project, deadline, page, limit } = req.query;
+
+            const result = await taskService.getMyTasks(req.user.id, {
+                search,
+                status,
+                priority,
+                project,
+                deadline,
+                page,
+                limit,
+            });
 
             return res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: TASK_MESSAGES.FETCH_SUCCESSFULLY,
-                data: tasks,
+                data: result.tasks,
+                pagination: result.pagination,
             });
         } catch (error) {
             next(error);

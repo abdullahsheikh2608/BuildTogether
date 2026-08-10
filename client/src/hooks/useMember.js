@@ -10,18 +10,27 @@ export function useMember() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-const loadMembers = useCallback(async (startupId) => {
+    const loadMembers = useCallback(async (
+        startupId,
+        search = ""
+    ) => {
     try {
         setLoading(true);
         setError("");
 
         console.log("Startup ID:", startupId);
 
-        const data = await getStartupMembers(startupId);
+        const data = await getStartupMembers(
+        startupId,
+        search
+    );
 
-        console.log("Members API Response:", data);
+        const rawData = Array.isArray(data) ? data : [];
+        const uniqueMembers = Array.from(
+            new Map(rawData.map((m) => [m.id, m])).values()
+        );
 
-        setMembers(Array.isArray(data) ? data : []);
+        setMembers(uniqueMembers);
     } catch (err) {
         console.log("Members Error:", err.response?.data || err);
 
