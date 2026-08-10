@@ -1,26 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { Briefcase, Sparkles, MessageSquare, Users, ListChecks } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import Button from "../../components/ui/Button.jsx";
 import Input from "../../components/ui/Input.jsx";
 import EmptyState from "../../components/ui/EmptyState.jsx";
 import ExpandableText from "../../components/ui/ExpandableText.jsx";
 import { useDeveloper } from "../../hooks/useDeveloper.js";
-import { useTask } from "../../hooks/useTask.js";
-import { useMember } from "../../hooks/useMember.js";
-import { useChat } from "../../hooks/useChat.js";
-import { useDebounce } from "../../hooks/useDebounce.js";
+import { getWorkspaceOverview, getWorkspaceTasks } from "../../services/workspace.service.js";
 
 export default function MyWorkspace() {
+  const { startupId: routeStartupId } = useParams();
   const { projects, loadProjects } = useDeveloper();
-  const { tasks, loading: tasksLoading, loadStartupTasks } = useTask();
-  const { members, loading: membersLoading, loadMembers } = useMember();
-  const { messages, loading: messagesLoading, loadMessages, setMessages } = useChat();
 
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const search = useDebounce(searchInput, 400);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewData, setOverviewData] = useState(null);
+  const [filteredTasks, setFilteredTasks] = useState(null);
 
   useEffect(() => {
     loadProjects();
@@ -33,28 +30,53 @@ export default function MyWorkspace() {
 
   useEffect(() => {
     if (acceptedProjects.length === 0) return;
-    setSelectedProjectId((current) => current || String(acceptedProjects[0].id));
-  }, [acceptedProjects]);
+    const initialId = routeStartupId || String(acceptedProjects[0].id);
+    setSelectedProjectId((current) => current || initialId);
+  }, [acceptedProjects, routeStartupId]);
 
   useEffect(() => {
     if (!selectedProjectId) return;
 
-    loadStartupTasks(selectedProjectId, search);
-    loadMembers(selectedProjectId, "");
-    setMessages([]);
-    loadMessages(selectedProjectId);
-  }, [selectedProjectId, loadStartupTasks, loadMembers, loadMessages, search, setMessages]);
+    let isMounted = true;
+    setOverviewLoading(true);
+    setFilteredTasks(null);
 
-  const project = useMemo(
-    () => acceptedProjects.find((item) => String(item.id) === String(selectedProjectId)),
-    [acceptedProjects, selectedProjectId]
-  );
+    getWorkspaceOverview(selectedProjectId)
+      .then((data) => {
+        if (isMounted) {
+          setOverviewData(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load workspace overview:", err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setOverviewLoading(false);
+        }
+      });
 
-  const loading = tasksLoading || membersLoading || messagesLoading;
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProjectId]);
+
+  const project = overviewData?.project || acceptedProjects.find((item) => String(item.id) === String(selectedProjectId));
+  const members = overviewData?.members || [];
+  const tasks = overviewData?.tasks || [];
+  const messages = overviewData?.messages || [];
+
+  const displayedTasks = useMemo(() => {
+    if (!searchInput.trim()) return tasks;
+    const term = searchInput.toLowerCase();
+    return tasks.filter((t) => t.title?.toLowerCase().includes(term) || t.description?.toLowerCase().includes(term));
+  }, [tasks, searchInput]);
+
+  const loading = overviewLoading;
   const completionRate = tasks.length
     ? Math.round((tasks.filter((task) => task.status === "done").length / tasks.length) * 100)
     : 0;
-  const upcomingTasks = tasks.slice(0, 5);
+  const upcomingTasks = displayedTasks.slice(0, 5);
   const recentMembers = members.slice(0, 4);
   const previewMessages = messages.slice(-3);
 

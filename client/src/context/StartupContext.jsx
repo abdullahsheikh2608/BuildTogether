@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { StartupContext } from "./startup-context.js";
 import { getAllStartups } from "../services/startup.service.js";
 
@@ -7,23 +7,36 @@ export function StartupProvider({ children }) {
   const [selectedStartup, setSelectedStartup] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const fetchPromiseRef = useRef(null);
 
   const loadStartups = useCallback(async (params = {}) => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const data = await getAllStartups(params);
-      const list = Array.isArray(data) ? data : [];
-      setStartups(list);
-      return list;
-    } catch (err) {
-      setError("Unable to load startups.");
-      setStartups([]);
-      return [];
-    } finally {
-      setLoading(false);
+    if (fetchPromiseRef.current && Object.keys(params).length === 0) {
+      return fetchPromiseRef.current;
     }
+
+    const promise = (async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await getAllStartups(params);
+        const list = Array.isArray(data) ? data : [];
+        setStartups(list);
+        return list;
+      } catch (err) {
+        setError("Unable to load startups.");
+        setStartups([]);
+        return [];
+      } finally {
+        setLoading(false);
+        fetchPromiseRef.current = null;
+      }
+    })();
+
+    if (Object.keys(params).length === 0) {
+      fetchPromiseRef.current = promise;
+    }
+    return promise;
   }, []);
 
   const getStartupById = useCallback(
