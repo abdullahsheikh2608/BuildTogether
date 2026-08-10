@@ -13,6 +13,7 @@ import dashboardRoutes from "./dashboard.routes.js";
 import chatRoutes from "./chat.routes.js";
 import aiRoutes from "./ai.routes.js";
 import searchRoutes from "./search.routes.js";
+import workspaceRoutes from "./workspace.routes.js";
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use("/dashboard", dashboardRoutes);
 router.use("/chat", chatRoutes);
 router.use("/ai", aiRoutes);
 router.use("/search", searchRoutes);
+router.use("/workspaces", workspaceRoutes);
 
 export default router;
