@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { MessageSquare } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+﻿import { useEffect, useMemo, useState } from "react";
+import { MessageSquare, ArrowLeft } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import EmptyState from "../../components/ui/EmptyState.jsx";
 import ChatBox from "../../components/chat/ChatBox.jsx";
 import { useDeveloper } from "../../hooks/useDeveloper.js";
 
 export default function TeamChat() {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const urlStartupId = searchParams.get("startupId") || searchParams.get("projectId");
 
@@ -46,39 +47,52 @@ export default function TeamChat() {
     );
 
     return (
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="w-full space-y-6">
+            {/* Back Button */}
+            <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+            >
+                <ArrowLeft size={16} />
+                Back
+            </button>
+
             <div>
-                <p className="text-sm font-medium text-cyan">Team Chat</p>
-                <h1 className="mt-2 font-display text-2xl font-semibold text-paper">Team Chat</h1>
-                <p className="mt-1 text-sm text-paper-dim">A dedicated messaging workspace for your project conversations.</p>
+                <p className="text-sm font-medium text-cyan-600">Messaging</p>
+                <h1 className="mt-1 font-display text-2xl font-semibold text-slate-900">Team Chat</h1>
+                <p className="mt-1 text-sm text-slate-500">A dedicated messaging workspace for your project conversations.</p>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-                <aside className="blueprint-card p-5">
-                    <div className="flex items-center gap-2">
-                        <MessageSquare size={18} className="text-cyan" />
-                        <h2 className="font-display text-lg font-semibold text-paper">Conversations</h2>
+            <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+                <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-center gap-2 px-1 pb-3">
+                        <MessageSquare size={16} className="text-cyan-600" />
+                        <h2 className="text-sm font-semibold text-slate-900">Conversations</h2>
                     </div>
 
-                    <div className="mt-5 space-y-3">
+                    <div className="space-y-1.5">
                         {loading ? (
-                            <p className="text-sm text-paper-dim">Loading projects…</p>
+                            <p className="px-1 text-sm text-slate-500">Loading projects…</p>
                         ) : acceptedProjects.length === 0 ? (
-                            <p className="text-sm text-paper-dim">No accepted projects yet.</p>
+                            <p className="px-1 text-sm text-slate-500">No accepted projects yet.</p>
                         ) : (
                             acceptedProjects.map((project) => (
                                 <button
                                     type="button"
                                     key={project.id}
                                     onClick={() => handleSelectProject(project.id)}
-                                    className={`w-full rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
+                                    className={`w-full rounded-xl border px-3.5 py-3 text-left transition-colors duration-150 ${
                                         String(project.id) === String(selectedProjectId)
-                                            ? 'border-cyan bg-cyan-dim text-paper'
-                                            : 'border-blueprint-line bg-white text-paper hover:border-cyan/80 hover:bg-blueprint-800/40'
+                                            ? 'border-cyan-200 bg-cyan-50'
+                                            : 'border-transparent hover:bg-slate-50'
                                     }`}
                                 >
-                                    <p className="font-semibold">{project.title}</p>
-                                    <p className="mt-1 text-sm text-paper-dim truncate">{project.tagline || 'Open this project chat.'}</p>
+                                    <p className={`text-sm font-medium truncate ${
+                                        String(project.id) === String(selectedProjectId) ? 'text-cyan-700' : 'text-slate-900'
+                                    }`}>
+                                        {project.title}
+                                    </p>
+                                    <p className="mt-0.5 text-xs text-slate-500 truncate">{project.tagline || 'Open this project chat.'}</p>
                                 </button>
                             ))
                         )}
@@ -87,9 +101,9 @@ export default function TeamChat() {
 
                 <main>
                     {selectedProject ? (
-                        <ChatBox startupId={selectedProjectId} />
+                        <ChatBox startupId={selectedProjectId} variant="page" title={selectedProject.title} />
                     ) : (
-                        <div className="blueprint-card p-6">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                             <EmptyState
                                 icon={MessageSquare}
                                 title="Select a conversation"

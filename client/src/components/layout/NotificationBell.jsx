@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, Check, Trash2, CheckCheck, X } from 'lucide-react';
 import { useNotifications } from '../../hooks/useNotifications.js';
 
@@ -29,36 +30,51 @@ export default function NotificationBell() {
   } = useNotifications();
 
   const [open, setOpen] = useState(false);
+  // Drives the slide-in transition: the drawer mounts off-screen
+  // (translate-x-full) and flips to translate-x-0 one frame later, so the
+  // panel animates in from the right instead of just appearing.
+  const [visible, setVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const panelRef = useRef(null);
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (panelRef.current && !panelRef.current.contains(event.target)) {
-        setOpen(false);
-      }
-    }
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (!open) return;
+    const raf = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(raf);
   }, [open]);
 
+  function closeDrawer() {
+    setVisible(false);
+    // Wait for the slide-out transition to finish before unmounting.
+    setTimeout(() => setOpen(false), 200);
+  }
+
+  // Lock background scroll whenever either overlay is open
+  useEffect(() => {
+    if (!open && !selectedNotification) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [open, selectedNotification]);
+
+  // Escape closes whichever overlay is open (detail view takes priority)
   useEffect(() => {
     function handleEscape(event) {
-      if (event.key === 'Escape') {
+      if (event.key !== 'Escape') return;
+      if (selectedNotification) {
         setSelectedNotification(null);
+      } else if (open) {
+        closeDrawer();
       }
     }
-    if (selectedNotification) {
+    if (open || selectedNotification) {
       document.addEventListener('keydown', handleEscape);
     }
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [selectedNotification]);
+  }, [open, selectedNotification]);
 
   function handleItemClick(notification) {
     if (!notification.is_read) {
@@ -68,103 +84,126 @@ export default function NotificationBell() {
   }
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative">
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen(true)}
         className="relative flex h-12 w-12 items-center justify-center rounded-full border border-blueprint-line bg-blueprint-800/80 text-paper transition hover:border-cyan hover:text-cyan focus:outline-none cursor-pointer"
         aria-label="Notifications"
       >
         <Bell size={20} />
 
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-ink-red px-1 text-[11px] font-bold text-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 mt-3 w-96 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-blueprint-line bg-blueprint-900 shadow-2xl z-50">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-blueprint-line px-5 py-4">
-            <h3 className="font-semibold text-paper">Notifications</h3>
+      {open && createPortal(
+        <div
+          className={`fixed inset-0 z-[100] bg-paper/60 backdrop-blur-sm transition-opacity duration-200 ${
+            visible ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={closeDrawer}
+        >
+          <div
+            className={`absolute inset-y-0 right-0 flex h-full w-full max-w-md flex-col border-l border-blueprint-line bg-blueprint-900 shadow-2xl transition-transform duration-200 ease-out ${
+              visible ? 'translate-x-0' : 'translate-x-full'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-blueprint-line px-5 py-4">
+              <h3 className="font-semibold text-paper">Notifications</h3>
 
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="flex items-center gap-1.5 text-xs font-medium text-cyan transition hover:text-cyan/80 cursor-pointer"
-              >
-                <CheckCheck size={14} />
-                Mark all read
-              </button>
-            )}
-          </div>
+              <div className="flex items-center gap-3">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="flex items-center gap-1.5 text-xs font-medium text-cyan transition hover:text-cyan/80 cursor-pointer"
+                  >
+                    <CheckCheck size={14} />
+                    Mark all read
+                  </button>
+                )}
 
-          {/* List */}
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="px-5 py-8 text-center text-sm text-paper-dim">
-                No notifications yet.
-              </div>
-            ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  onClick={() => handleItemClick(notification)}
-                  className={`group flex cursor-pointer items-start gap-3 border-b border-blueprint-line/60 px-5 py-3.5 transition hover:bg-slate-800 ${
-                    notification.is_read ? '' : 'bg-cyan/5'
-                  }`}
+                <button
+                  onClick={closeDrawer}
+                  className="flex-shrink-0 rounded-md p-1 text-paper-dim transition hover:bg-blueprint-700 hover:text-cyan cursor-pointer"
+                  aria-label="Close"
                 >
-                  {!notification.is_read && (
-                    <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-cyan" />
-                  )}
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
 
-                  <div className={`min-w-0 flex-1 ${notification.is_read ? 'ml-5' : ''}`}>
-                    <p className="text-sm font-medium text-paper">
-                      {notification.title}
-                    </p>
-                    <p className="mt-0.5 text-sm text-paper-dim line-clamp-2">
-                      {notification.message}
-                    </p>
-                    <p className="mt-1 text-xs text-paper-dim/70">
-                      {timeAgo(notification.created_at)}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
+            {/* List */}
+            <div className="flex-1 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="px-5 py-8 text-center text-sm text-paper-dim">
+                  No notifications yet.
+                </div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleItemClick(notification)}
+                    className={`group flex cursor-pointer items-start gap-3 border-b border-blueprint-line/60 px-5 py-3.5 transition hover:bg-blueprint-800 ${
+                      notification.is_read ? '' : 'bg-cyan/5'
+                    }`}
+                  >
                     {!notification.is_read && (
+                      <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-cyan" />
+                    )}
+
+                    <div className={`min-w-0 flex-1 ${notification.is_read ? 'ml-5' : ''}`}>
+                      <p className="text-sm font-medium text-paper">
+                        {notification.title}
+                      </p>
+                      <p className="mt-0.5 text-sm text-paper-dim line-clamp-2">
+                        {notification.message}
+                      </p>
+                      <p className="mt-1 text-xs text-paper-dim/70">
+                        {timeAgo(notification.created_at)}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
+                      {!notification.is_read && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markAsRead(notification.id);
+                          }}
+                          className="rounded-md p-1.5 text-paper-dim transition hover:bg-blueprint-700 hover:text-cyan cursor-pointer"
+                          title="Mark as read"
+                        >
+                          <Check size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          markAsRead(notification.id);
+                          removeNotification(notification.id);
                         }}
-                        className="rounded-md p-1.5 text-paper-dim transition hover:bg-blueprint-700 hover:text-cyan cursor-pointer"
-                        title="Mark as read"
+                        className="rounded-md p-1.5 text-paper-dim transition hover:bg-blueprint-700 hover:text-ink-red cursor-pointer"
+                        title="Delete"
                       >
-                        <Check size={14} />
+                        <Trash2 size={14} />
                       </button>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeNotification(notification.id);
-                      }}
-                      className="rounded-md p-1.5 text-paper-dim transition hover:bg-blueprint-700 hover:text-red-400 cursor-pointer"
-                      title="Delete"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {selectedNotification && (
+      {selectedNotification && createPortal(
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-paper/60 px-4"
           onClick={() => setSelectedNotification(null)}
         >
           <div
@@ -201,14 +240,15 @@ export default function NotificationBell() {
                   removeNotification(selectedNotification.id);
                   setSelectedNotification(null);
                 }}
-                className="flex items-center gap-1.5 text-xs font-medium text-paper-dim transition hover:text-red-400 cursor-pointer"
+                className="flex items-center gap-1.5 text-xs font-medium text-paper-dim transition hover:text-ink-red cursor-pointer"
               >
                 <Trash2 size={14} />
                 Delete
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

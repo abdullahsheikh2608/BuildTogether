@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Rocket, Briefcase, ListChecks, CheckCircle2, Clock, ArrowRight, UserPlus, ClipboardList } from "lucide-react";
 
@@ -17,6 +17,10 @@ import { useTask } from "../../hooks/useTask.js";
 const RECENT_PROJECTS_LIMIT = 15;
 const MY_TASKS_LIMIT = 15;
 const RECENT_ACTIVITY_LIMIT = 15;
+// Above this many tasks the list gets a capped, scrollable height;
+// below it, the card just shrinks to fit — no more empty scroll box
+// hanging around under a single task.
+const TASK_LIST_SCROLL_THRESHOLD = 5;
 
 const PRIORITY_STYLES = {
     low: "bg-blueprint-800 text-paper-dim",
@@ -53,6 +57,8 @@ export default function DeveloperDashboard() {
         loadMyTasks,
     } = useTask();
 
+    const [selectedProjectId, setSelectedProjectId] = useState("all");
+
     useEffect(() => {
         loadProjects();
     }, [loadProjects]);
@@ -64,14 +70,22 @@ export default function DeveloperDashboard() {
     const loading = projectsLoading || tasksLoading;
     const firstName = user?.full_name?.split(" ")[0] || "there";
 
+    // Everything below derives from this — selecting a project pill
+    // filters tasks, stats, and activity down to just that project.
+    // "All Projects" (selectedProjectId === "all") skips filtering.
+    const filteredTasks = useMemo(() => {
+        if (selectedProjectId === "all") return tasks;
+        return tasks.filter((task) => String(task.startup_id) === String(selectedProjectId));
+    }, [tasks, selectedProjectId]);
+
     const totalProjects = projects.length;
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter((t) => t.status === "done").length;
-    const pendingTasks = tasks.filter((t) => t.status !== "done").length;
+    const totalTasks = filteredTasks.length;
+    const completedTasks = filteredTasks.filter((t) => t.status === "done").length;
+    const pendingTasks = filteredTasks.filter((t) => t.status !== "done").length;
 
     const recentProjects = projects.slice(0, RECENT_PROJECTS_LIMIT);
 
-    const myTasks = [...tasks]
+    const myTasks = [...filteredTasks]
         .filter((t) => t.status !== "done")
         .sort((a, b) => new Date(a.deadline ?? 0) - new Date(b.deadline ?? 0))
         .slice(0, MY_TASKS_LIMIT);
@@ -80,7 +94,7 @@ export default function DeveloperDashboard() {
     // assignments and project joins), not a fabricated feed. Each source
     // is tagged, merged, and sorted by timestamp so the most recent
     // events surface first regardless of which type they are.
-    const taskEvents = tasks.map((task) => ({
+    const taskEvents = filteredTasks.map((task) => ({
         id: `task-${task.id}`,
         type: "task",
         text: `You were assigned to "${task.title}"`,
@@ -88,7 +102,10 @@ export default function DeveloperDashboard() {
         timestamp: task.created_at,
     }));
 
-    const projectEvents = projects.map((project) => ({
+    const projectEvents = (selectedProjectId === "all"
+        ? projects
+        : projects.filter((project) => String(project.id) === String(selectedProjectId))
+    ).map((project) => ({
         id: `project-${project.id}`,
         type: "project",
         text: `You joined "${project.title}"`,
@@ -100,6 +117,11 @@ export default function DeveloperDashboard() {
         .filter((event) => event.timestamp)
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
         .slice(0, RECENT_ACTIVITY_LIMIT);
+
+    const taskListClass =
+        myTasks.length > TASK_LIST_SCROLL_THRESHOLD
+            ? "mt-4 flex max-h-80 flex-col divide-y divide-blueprint-line overflow-y-auto pr-1"
+            : "mt-4 flex flex-col divide-y divide-blueprint-line pr-1";
 
     return (
         <div className="w-full">
@@ -132,8 +154,37 @@ export default function DeveloperDashboard() {
                 </p>
             )}
 
+            {/* Project filter pills */}
+            {!loading && totalProjects > 0 && (
+                <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
+                    <button
+                        onClick={() => setSelectedProjectId("all")}
+                        className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                            selectedProjectId === "all"
+                                ? "bg-cyan text-white"
+                                : "border border-blueprint-line text-paper-dim hover:border-cyan/40 hover:text-paper"
+                        }`}
+                    >
+                        All Projects
+                    </button>
+                    {projects.map((project) => (
+                        <button
+                            key={project.id}
+                            onClick={() => setSelectedProjectId(String(project.id))}
+                            className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                                String(selectedProjectId) === String(project.id)
+                                    ? "bg-cyan text-white"
+                                    : "border border-blueprint-line text-paper-dim hover:border-cyan/40 hover:text-paper"
+                            }`}
+                        >
+                            {project.title}
+                        </button>
+                    ))}
+                </div>
+            )}
+
             {/* Stat cards */}
-            <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {loading ? (
                     <>
                         <SkeletonStat />
@@ -176,7 +227,7 @@ export default function DeveloperDashboard() {
                                 </button>
                             </div>
 
-                            <div className="mt-4 flex max-h-80 flex-col divide-y divide-blueprint-line overflow-y-auto pr-1">
+                            <div className={taskListClass}>
                                 {loading ? (
                                     <p className="py-6 text-center text-sm text-paper-faint">Loading…</p>
                                 ) : myTasks.length === 0 ? (
@@ -239,7 +290,11 @@ export default function DeveloperDashboard() {
                                         <button
                                             key={project.id}
                                             onClick={() => navigate(`/dashboard/workspace/${project.id}`)}
-                                            className="flex items-center justify-between gap-3 rounded-lg px-2 py-3 text-left transition-colors duration-200 hover:bg-blueprint-800 cursor-pointer"
+                                            className={`flex items-center justify-between gap-3 rounded-lg px-2 py-3 text-left transition-colors duration-200 cursor-pointer ${
+                                                String(selectedProjectId) === String(project.id)
+                                                    ? "bg-cyan-dim"
+                                                    : "hover:bg-blueprint-800"
+                                            }`}
                                         >
                                             <div className="min-w-0">
                                                 <p className="truncate text-sm font-medium text-paper">{project.title}</p>
@@ -255,7 +310,7 @@ export default function DeveloperDashboard() {
                     {/* Row 2: Upcoming Deadlines + Recent Activity */}
                     <div className="mt-5 grid gap-5 lg:grid-cols-3">
                         <div className="lg:col-span-2">
-                            {!loading && <UpcomingDeadlines tasks={tasks} />}
+                            {!loading && <UpcomingDeadlines tasks={filteredTasks} />}
                         </div>
 
                         <div className="blueprint-card flex flex-col p-5">

@@ -70,7 +70,7 @@ export default function Login() {
           required
         />
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <label className="flex items-center gap-2 text-sm text-auth-text-dim">
             <input
               type="checkbox"
@@ -80,9 +80,6 @@ export default function Login() {
             />
             Keep me signed in
           </label>
-          <Link to="/forgot-password" className="text-sm font-medium text-auth-blue-bright hover:underline">
-            Forgot password?
-          </Link>
         </div>
 
         {error && (

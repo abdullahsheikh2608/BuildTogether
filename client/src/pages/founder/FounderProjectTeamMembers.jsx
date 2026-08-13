@@ -7,6 +7,7 @@ import BackButton from "../../components/common/BackButton.jsx";
 import Button from "../../components/ui/Button.jsx";
 import EmptyState from "../../components/ui/EmptyState.jsx";
 import Skeleton from "../../components/ui/Skeleton.jsx";
+import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
 
 import { useStartup } from "../../hooks/useStartup.js";
 import { useMember } from "../../hooks/useMember.js";
@@ -32,6 +33,8 @@ export default function FounderProjectTeamMembers() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("nameAsc");
+  const [removeTarget, setRemoveTarget] = useState(null);
+  const [removingMember, setRemovingMember] = useState(false);
 
   useEffect(() => {
     if (startups.length === 0) {
@@ -98,16 +101,16 @@ export default function FounderProjectTeamMembers() {
     });
   };
 
-  const handleRemoveMember = async (member) => {
-    const confirmed = window.confirm(
-      `Remove ${member.full_name} from this project?`
-    );
+  const handleRemoveMember = (member) => {
+    setRemoveTarget(member);
+  };
 
-    if (!confirmed) return;
-
+  const handleConfirmRemoveMember = async () => {
     try {
-      await removeMember(startupId, member.id);
+      setRemovingMember(true);
+      await removeMember(startupId, removeTarget.id);
       await loadMembers(startupId, debouncedSearch);
+      setRemoveTarget(null);
       showToast({ type: "success", message: "Member removed successfully." });
     } catch (error) {
       showToast({
@@ -116,6 +119,8 @@ export default function FounderProjectTeamMembers() {
           error.response?.data?.message ??
           "Unable to remove member.",
       });
+    } finally {
+      setRemovingMember(false);
     }
   };
 
@@ -245,6 +250,15 @@ export default function FounderProjectTeamMembers() {
           </div>
         </aside>
       </div>
+
+      <ConfirmDialog
+        open={!!removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={handleConfirmRemoveMember}
+        confirming={removingMember}
+        title="Remove this member?"
+        body={`"${removeTarget?.full_name}" will be removed from this project. This can't be undone.`}
+      />
     </div>
   );
 }

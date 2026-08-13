@@ -47,7 +47,7 @@ export default function StartupCard({
             <Link to={`/founder/startups/${startup.id}/applications`}>
               <Button variant="outline">Applications</Button>
             </Link>
-            <Link to={`/founder/projects/${startup.id}`}>
+            <Link to={`/founder/workspace/${startup.id}`}>
               <Button variant="outline">Manage Project</Button>
             </Link>
             <Button variant="ghost" onClick={() => onEdit(startup)}>Edit</Button>

@@ -9,11 +9,20 @@ import {
     APPLICATION_MESSAGES,
 } from "../constants/messages.js";
 
+const isValidOptionalUrl = (value) =>
+    value === undefined ||
+    value === null ||
+    value === "" ||
+    validator.isURL(value, { require_protocol: true });
+
 export const validateCreateApplication = (req, res, next) => {
 
     const {
         startup_id,
         message,
+        relevant_experience,
+        github_url,
+        portfolio_url,
     } = req.body;
 
     if (!startup_id) {
@@ -32,13 +41,66 @@ export const validateCreateApplication = (req, res, next) => {
 
     if (
         message !== undefined &&
-        !validator.isLength(message, {
-            max: APPLICATION_LIMITS.MESSAGE_MAX,
-        })
+        message !== "" &&
+        !validator.isLength(message, { max: APPLICATION_LIMITS.MESSAGE_MAX })
     ) {
         return res.status(400).json({
             success: false,
             message: APPLICATION_MESSAGES.MESSAGE_TOO_LONG,
+        });
+    }
+
+    if (
+        relevant_experience !== undefined &&
+        relevant_experience !== "" &&
+        !validator.isLength(relevant_experience, { max: APPLICATION_LIMITS.EXPERIENCE_MAX })
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: APPLICATION_MESSAGES.EXPERIENCE_TOO_LONG,
+        });
+    }
+
+    if (!isValidOptionalUrl(github_url) || !isValidOptionalUrl(portfolio_url)) {
+        return res.status(400).json({
+            success: false,
+            message: APPLICATION_MESSAGES.INVALID_URL,
+        });
+    }
+
+    next();
+};
+
+export const validateUpdateApplicationDetails = (req, res, next) => {
+
+    const { message, relevant_experience, github_url, portfolio_url } = req.body;
+
+    if (
+        message !== undefined &&
+        message !== "" &&
+        !validator.isLength(message, { max: APPLICATION_LIMITS.MESSAGE_MAX })
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: APPLICATION_MESSAGES.MESSAGE_TOO_LONG,
+        });
+    }
+
+    if (
+        relevant_experience !== undefined &&
+        relevant_experience !== "" &&
+        !validator.isLength(relevant_experience, { max: APPLICATION_LIMITS.EXPERIENCE_MAX })
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: APPLICATION_MESSAGES.EXPERIENCE_TOO_LONG,
+        });
+    }
+
+    if (!isValidOptionalUrl(github_url) || !isValidOptionalUrl(portfolio_url)) {
+        return res.status(400).json({
+            success: false,
+            message: APPLICATION_MESSAGES.INVALID_URL,
         });
     }
 

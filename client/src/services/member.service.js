@@ -24,7 +24,7 @@ export const getMyProjects = async () => {
 
 export const removeMember = async (startupId, developerId) => {
     const response = await api.delete(
-        `/members/startups/${startupId}/members/${developerId}`
+        `/members/startups/${startupId}/developers/${developerId}`
     );
 
     return response.data.data;

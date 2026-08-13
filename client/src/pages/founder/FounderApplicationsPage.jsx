@@ -96,7 +96,7 @@ export default function FounderApplicationsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="w-full space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-3">
         <div className="rounded-lg bg-cyan/20 p-2 text-cyan">

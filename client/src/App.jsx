@@ -3,7 +3,6 @@ import ProjectWorkspace from "./pages/founder/ProjectWorkspace.jsx";
 
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/auth/Register.jsx';
-import ForgotPassword from './pages/auth/ForgotPassword.jsx';
 
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import RoleRoute from './routes/RoleRoute.jsx';
@@ -59,8 +58,6 @@ function App() {
       <Route path="/login" element={<Login />} />
 
       <Route path="/register" element={<Register />} />
-
-      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>

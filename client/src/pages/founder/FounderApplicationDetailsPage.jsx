@@ -201,7 +201,7 @@ export default function FounderApplicationDetailsPage() {
                 href={application.github_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-slate-900/60 p-3 text-sm text-paper hover:border-cyan transition-colors"
+                className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-blueprint-800 p-3 text-sm text-paper transition-colors hover:border-cyan hover:bg-cyan-dim"
               >
                 <Code2 size={18} className="text-cyan" />
                 <span className="truncate">{application.github_url}</span>
@@ -216,7 +216,7 @@ export default function FounderApplicationDetailsPage() {
                 href={application.portfolio_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-slate-900/60 p-3 text-sm text-paper hover:border-cyan transition-colors"
+                className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-blueprint-800 p-3 text-sm text-paper transition-colors hover:border-cyan hover:bg-cyan-dim"
               >
                 <Globe size={18} className="text-cyan" />
                 <span className="truncate">{application.portfolio_url}</span>

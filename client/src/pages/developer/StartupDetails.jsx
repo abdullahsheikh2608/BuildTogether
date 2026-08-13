@@ -93,7 +93,7 @@ export default function StartupDetails() {
 
           <div className="mt-3 flex flex-wrap gap-2">
             {startup.required_roles?.map((role) => (
-              <span key={role} className="rounded bg-slate-700 px-3 py-1 text-paper">
+              <span key={role} className="rounded bg-indigo/15 px-3 py-1 font-medium text-indigo">
                 {role}
               </span>
             ))}

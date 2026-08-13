@@ -6,6 +6,7 @@ import Button from '../../components/ui/Button.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
+import BackButton from '../../components/common/BackButton.jsx';
 import TaskCard from '../../components/project/TaskCard.jsx';
 import TaskDetailsPanel from '../../components/project/TaskDetailsPanel.jsx';
 import { useTask } from '../../hooks/useTask.js';
@@ -48,7 +49,13 @@ export default function DeveloperTasks() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [deadlineFilter, setDeadlineFilter] = useState('all');
-  const [projectFilter, setProjectFilter] = useState('all');
+  // Initialize straight from the URL instead of defaulting to 'all' and
+  // correcting it later in an effect. The old approach fired an unfiltered
+  // "all tasks" request on mount, then a second filtered request once the
+  // projects list loaded — and since loadMyTasks has no request
+  // cancellation, whichever response arrived last would win, sometimes
+  // leaving the page showing every task instead of just this project's.
+  const [projectFilter, setProjectFilter] = useState(() => urlStartupId || 'all');
   const [selectedTask, setSelectedTask] = useState(null);
   const [page, setPage] = useState(1);
 
@@ -58,13 +65,12 @@ export default function DeveloperTasks() {
     loadProjects();
   }, [loadProjects]);
 
+  // Keep the filter in sync if the URL's startupId changes after mount
+  // (e.g. navigating here again with a different project from a link).
   useEffect(() => {
-    if (!urlStartupId || projects.length === 0) return;
-    const match = projects.find((p) => String(p.id) === String(urlStartupId));
-    if (match) {
-      setProjectFilter(String(match.id));
-    }
-  }, [urlStartupId, projects]);
+    if (!urlStartupId) return;
+    setProjectFilter(urlStartupId);
+  }, [urlStartupId]);
 
   // Any filter change starts the list back at page 1.
   useEffect(() => {
@@ -96,6 +102,7 @@ export default function DeveloperTasks() {
 
   return (
     <div className="w-full space-y-6">
+      <BackButton fallbackPath="/dashboard" />
       <div>
         <p className="text-sm font-medium text-cyan">Tasks</p>
         <h1 className="mt-2 font-display text-2xl font-semibold text-paper">My Tasks</h1>

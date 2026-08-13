@@ -317,6 +317,21 @@ export const getApplicationResumeFile = async (id, userId) => {
     };
 };
 
+// Turns page/limit query-string values into safe positive integers.
+// req.query values arrive as strings or undefined — Number(undefined)
+// is NaN, and binding NaN into a "LIMIT $n OFFSET $n" postgres query
+// throws, which is what was breaking "Applications" whenever a caller
+// (e.g. the founder's all-projects view) didn't pass page/limit at all.
+const toSafePage = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 1;
+};
+
+const toSafeLimit = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 10;
+};
+
 export const getMyApplications = async (
     developerId,
     search = "",
@@ -326,15 +341,15 @@ export const getMyApplications = async (
     sortBy = "applied_at",
     order = "DESC"
 ) => {
-    const pageNumber = Number(page);
-    const limitNumber = Number(limit);
+    const pageNumber = toSafePage(page);
+    const limitNumber = toSafeLimit(limit);
     const offset = (pageNumber - 1) * limitNumber;
 
     const allowedSortFields = ["applied_at", "updated_at"];
     const allowedOrder = ["ASC", "DESC"];
 
     const sortField = allowedSortFields.includes(sortBy) ? sortBy : "applied_at";
-    const sortDirection = allowedOrder.includes(order.toUpperCase()) ? order.toUpperCase() : "DESC";
+    const sortDirection = allowedOrder.includes((order || "").toUpperCase()) ? order.toUpperCase() : "DESC";
 
     let query = `
         SELECT
@@ -424,15 +439,15 @@ export const getStartupApplications = async (
         return "FORBIDDEN";
     }
 
-    const pageNumber = Number(page);
-    const limitNumber = Number(limit);
+    const pageNumber = toSafePage(page);
+    const limitNumber = toSafeLimit(limit);
     const offset = (pageNumber - 1) * limitNumber;
 
     const allowedSortFields = ["applied_at", "updated_at"];
     const allowedOrder = ["ASC", "DESC"];
 
     const sortField = allowedSortFields.includes(sortBy) ? sortBy : "applied_at";
-    const sortDirection = allowedOrder.includes(order.toUpperCase()) ? order.toUpperCase() : "DESC";
+    const sortDirection = allowedOrder.includes((order || "").toUpperCase()) ? order.toUpperCase() : "DESC";
 
     let query = `
         SELECT

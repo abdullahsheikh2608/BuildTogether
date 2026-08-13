@@ -9,6 +9,7 @@ import {
     Loader2,
 } from "lucide-react";
 
+import BackButton from "../../components/common/BackButton.jsx";
 import DeveloperProjectCard from "../../components/project/DeveloperProjectCard.jsx";
 import AnalyticsCard from "../../components/analytics/Analyticscard.jsx";
 import Input from "../../components/ui/Input.jsx";
@@ -110,6 +111,7 @@ export default function MyProjects() {
 
     return (
         <div className="w-full">
+            <BackButton fallbackPath="/dashboard" />
 
             {/* Header */}
 

@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import Button from '../../components/ui/Button.jsx';
 import Select from '../../components/ui/Select.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
+import BackButton from '../../components/common/BackButton.jsx';
 import { useDeveloper } from '../../hooks/useDeveloper.js';
 import AiAssistantPanel from '../../components/project/AiAssistantPanel.jsx';
 
@@ -50,6 +51,7 @@ export default function DeveloperAIAssistant() {
 
   return (
     <div className="w-full space-y-6">
+      <BackButton fallbackPath="/dashboard" />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium text-cyan">AI Assistant</p>

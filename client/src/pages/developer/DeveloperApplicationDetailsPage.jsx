@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Edit3, ExternalLink, Code2, Globe, Calendar, Clock } from 'lucide-react';
+
 import BackButton from '../../components/common/BackButton.jsx';
 import StampBadge from '../../components/ui/StampBadge.jsx';
 import Button from '../../components/ui/Button.jsx';
 import ResumeViewer from '../../components/applications/ResumeViewer.jsx';
 import { getApplicationById } from '../../services/application.service.js';
-import { Edit3, ExternalLink, Code2, Globe, Calendar, Clock } from 'lucide-react';
+
+// An application can be edited while pending, or while rejected
+// (editing while rejected re-submits it — see ApplicationEditPage).
+const EDITABLE_STATUSES = ['pending', 'rejected'];
 
 export default function DeveloperApplicationDetailsPage() {
   const { applicationId } = useParams();
@@ -20,7 +25,7 @@ export default function DeveloperApplicationDetailsPage() {
         const data = await getApplicationById(applicationId);
         setApplication(data);
       } catch (err) {
-        setError('Failed to load application details.');
+        setError(err.response?.data?.message || 'Failed to load application details.');
       } finally {
         setLoading(false);
       }
@@ -50,8 +55,10 @@ export default function DeveloperApplicationDetailsPage() {
     );
   }
 
+  const isEditable = EDITABLE_STATUSES.includes(application.status);
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <BackButton />
 
       {/* Startup Header Card */}
@@ -64,12 +71,14 @@ export default function DeveloperApplicationDetailsPage() {
             <h1 className="mt-1 font-display text-2xl font-bold text-paper">
               {application.startup_title}
             </h1>
-            <p className="mt-1 text-sm text-paper-dim">{application.startup_tagline}</p>
+            {application.startup_tagline && (
+              <p className="mt-1 text-sm text-paper-dim">{application.startup_tagline}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
             <StampBadge status={application.status} />
-            {application.status === 'pending' && (
+            {isEditable && (
               <Link to={`/dashboard/applications/${application.id}/edit`}>
                 <Button className="px-4 py-2 text-xs">
                   <Edit3 size={14} className="mr-1.5" />
@@ -95,19 +104,19 @@ export default function DeveloperApplicationDetailsPage() {
       </div>
 
       {/* Cover Message */}
-      <div className="blueprint-card p-6 space-y-3">
+      <div className="blueprint-card space-y-3 p-6">
         <h3 className="font-display text-lg font-semibold text-paper">Cover Message</h3>
-        <p className="whitespace-pre-wrap text-sm text-paper-dim leading-relaxed">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-paper-dim">
           {application.message || 'No cover message provided.'}
         </p>
       </div>
 
       {/* Relevant Experience */}
-      {application.relevant_experience && (
-        <div className="blueprint-card p-6 space-y-3">
+      {application.experience && (
+        <div className="blueprint-card space-y-3 p-6">
           <h3 className="font-display text-lg font-semibold text-paper">Relevant Experience</h3>
-          <p className="whitespace-pre-wrap text-sm text-paper-dim leading-relaxed">
-            {application.relevant_experience}
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-paper-dim">
+            {application.experience}
           </p>
         </div>
       )}
@@ -115,7 +124,7 @@ export default function DeveloperApplicationDetailsPage() {
       {/* Skills & Links */}
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Skills */}
-        <div className="blueprint-card p-6 space-y-3">
+        <div className="blueprint-card space-y-3 p-6">
           <h3 className="font-display text-lg font-semibold text-paper">Skills Submitted</h3>
           {Array.isArray(application.skills) && application.skills.length > 0 ? (
             <div className="flex flex-wrap gap-2">
@@ -131,17 +140,10 @@ export default function DeveloperApplicationDetailsPage() {
           ) : (
             <p className="text-sm text-paper-faint">No specific skills listed.</p>
           )}
-
-          {application.availability && (
-            <div className="mt-4 border-t border-blueprint-line pt-3">
-              <p className="text-xs font-mono uppercase text-paper-faint">Availability</p>
-              <p className="text-sm font-medium text-paper mt-0.5">{application.availability}</p>
-            </div>
-          )}
         </div>
 
         {/* External Links */}
-        <div className="blueprint-card p-6 space-y-3">
+        <div className="blueprint-card space-y-3 p-6">
           <h3 className="font-display text-lg font-semibold text-paper">Links & Profiles</h3>
           <div className="space-y-3">
             {application.github_url ? (
@@ -149,7 +151,7 @@ export default function DeveloperApplicationDetailsPage() {
                 href={application.github_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-slate-900/60 p-3 text-sm text-paper hover:border-cyan transition-colors"
+                className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-blueprint-800 p-3 text-sm text-paper transition-colors hover:border-cyan hover:bg-cyan-dim"
               >
                 <Code2 size={18} className="text-cyan" />
                 <span className="truncate">{application.github_url}</span>
@@ -164,7 +166,7 @@ export default function DeveloperApplicationDetailsPage() {
                 href={application.portfolio_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-slate-900/60 p-3 text-sm text-paper hover:border-cyan transition-colors"
+                className="flex items-center gap-2 rounded-lg border border-blueprint-line bg-blueprint-800 p-3 text-sm text-paper transition-colors hover:border-cyan hover:bg-cyan-dim"
               >
                 <Globe size={18} className="text-cyan" />
                 <span className="truncate">{application.portfolio_url}</span>
@@ -179,10 +181,7 @@ export default function DeveloperApplicationDetailsPage() {
 
       {/* Resume Viewer */}
       <div className="blueprint-card p-6">
-        <ResumeViewer
-          applicationId={application.id}
-          fileName={application.resume_filename}
-        />
+        <ResumeViewer applicationId={application.id} fileName={application.resume_original_name} />
       </div>
     </div>
   );
