@@ -9,14 +9,9 @@ import { initializeSocket } from "./socket/socket.js";
 import { weeklyReportGeneratorService } from "./services/weeklyReportGenerator.service.js";
 import { WEEKLY_REPORT_SCHEDULE } from "./constants/weeklyReport.constant.js";
 
-
 const PORT = process.env.PORT || 5000;
 
-// Last-resort safety nets. These shouldn't normally fire — the specific
-// pool.on('error', ...) handler in config/db.js already catches dropped
-// DB connections — but this stops any *other* stray unhandled error
-// (e.g. a forgotten .catch() somewhere) from silently killing the
-// whole server the same way.
+// Last-resort safety nets
 process.on("unhandledRejection", (reason) => {
     console.error("Unhandled promise rejection:", reason);
 });
@@ -27,7 +22,8 @@ process.on("uncaughtException", (error) => {
 
 async function runDeadlineReminderCheck() {
     try {
-        const remindersSent = await deadlineReminderService.sendDeadlineReminders();
+        const remindersSent =
+            await deadlineReminderService.sendDeadlineReminders();
 
         if (remindersSent > 0) {
             console.log(`🔔 Sent ${remindersSent} task deadline reminder(s)`);
@@ -40,7 +36,8 @@ async function runDeadlineReminderCheck() {
 
 async function runWeeklyReportCheck() {
     try {
-        const reportsSent = await weeklyReportGeneratorService.sendWeeklyReports();
+        const reportsSent =
+            await weeklyReportGeneratorService.sendWeeklyReports();
 
         if (reportsSent > 0) {
             console.log(`📊 Sent ${reportsSent} automatic weekly report(s)`);
@@ -50,21 +47,20 @@ async function runWeeklyReportCheck() {
         console.error(error);
     }
 }
-runWeeklyReportCheck();
-setInterval(runWeeklyReportCheck, WEEKLY_REPORT_SCHEDULE.CHECK_INTERVAL_MS);
 
-// Postgres can take a few seconds to finish starting right after a
-// machine boot (or right after a crash-recovery cycle), which used to
-// make the very first connection attempt fail and crash the whole
-// server immediately. Retrying with a short delay gives it a real
-// chance to come up before we give up.
+runWeeklyReportCheck();
+setInterval(
+    runWeeklyReportCheck,
+    WEEKLY_REPORT_SCHEDULE.CHECK_INTERVAL_MS
+);
+
+// PostgreSQL connection retry
 async function connectWithRetry(maxAttempts = 10, delayMs = 3000) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
             await pool.query("SELECT NOW()");
             return;
         } catch (error) {
-
             const isLastAttempt = attempt === maxAttempts;
 
             console.error(
@@ -77,14 +73,15 @@ async function connectWithRetry(maxAttempts = 10, delayMs = 3000) {
 
             console.log(`   Retrying in ${delayMs / 1000}s...`);
 
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            await new Promise((resolve) =>
+                setTimeout(resolve, delayMs)
+            );
         }
     }
 }
 
 async function startServer() {
     try {
-
         await connectWithRetry();
 
         console.log("✅ Database Connected Successfully");
@@ -93,7 +90,9 @@ async function startServer() {
 
         const io = new Server(httpServer, {
             cors: {
-                origin: process.env.CLIENT_URL || "http://localhost:5173",
+                origin:
+                    process.env.CLIENT_URL ||
+                    "http://localhost:5173",
                 methods: ["GET", "POST"],
                 credentials: true,
             },
@@ -101,19 +100,33 @@ async function startServer() {
 
         initializeSocket(io);
 
-        httpServer.listen(PORT, () => {
-            console.log(`🚀 Server running on http://localhost:${PORT}`);
+        // Railway requires the server to listen on the
+        // PORT provided through the environment.
+        // 0.0.0.0 makes the server accessible outside
+        // the local container.
+        httpServer.listen(PORT, "0.0.0.0", () => {
+            console.log(
+                `🚀 Server running on http://0.0.0.0:${PORT}`
+            );
         });
 
-        // Run once on startup, then on a recurring interval, so reminders
-        // don't wait a full interval before the first check.
+        // Run once on startup, then periodically
         runDeadlineReminderCheck();
-        setInterval(runDeadlineReminderCheck, TASK_DEADLINE_REMINDER.CHECK_INTERVAL_MS);
 
+        setInterval(
+            runDeadlineReminderCheck,
+            TASK_DEADLINE_REMINDER.CHECK_INTERVAL_MS
+        );
     } catch (error) {
+        console.error(
+            "❌ Database Connection Failed after multiple retries"
+        );
 
-        console.error("❌ Database Connection Failed after multiple retries");
-        console.error("   Check that PostgreSQL is running (services.msc) and DATABASE_URL in .env is correct.");
+        console.error(
+            "   Check DATABASE_URL and PostgreSQL configuration."
+        );
+
+        console.error(error);
 
         process.exit(1);
     }
