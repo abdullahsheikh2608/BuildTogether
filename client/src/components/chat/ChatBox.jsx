@@ -10,7 +10,7 @@ import { useChat } from "../../hooks/useChat.js";
 import { useSocket } from "../../context/SocketContext.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
 
-export default function ChatBox({ startupId }) {
+export default function ChatBox({ startupId, hideHeader = false, className = "" }) {
     const { user } = useAuth();
     const socket = useSocket();
 
@@ -63,12 +63,14 @@ export default function ChatBox({ startupId }) {
     };
 
     return (
-        <div className="blueprint-card flex h-[32rem] flex-col overflow-hidden">
-            <div className="border-b border-blueprint-line p-6 pb-4">
-                <h2 className="font-display text-lg font-semibold text-paper">
-                    Team Chat
-                </h2>
-            </div>
+        <div className={`flex flex-col overflow-hidden ${className || "blueprint-card h-[32rem]"}`}>
+            {!hideHeader && (
+                <div className="border-b border-blueprint-line p-6 pb-4">
+                    <h2 className="font-display text-lg font-semibold text-paper">
+                        Team Chat
+                    </h2>
+                </div>
+            )}
 
             <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
                 {loading ? (

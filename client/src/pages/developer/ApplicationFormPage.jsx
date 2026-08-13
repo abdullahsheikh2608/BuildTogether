@@ -41,8 +41,19 @@ export default function ApplicationFormPage() {
     }
   }, [startupId]);
 
-  const handleSubmit = async (formData) => {
-    await applyToStartup(formData);
+  const handleSubmit = async (formData, resumeFile) => {
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, val]) => {
+      if (val !== undefined && val !== null) {
+        payload.append(key, val);
+      }
+    });
+    payload.append('startup_id', startupId);
+    if (resumeFile) {
+      payload.append('resume', resumeFile);
+    }
+
+    await applyToStartup(payload);
     navigate('/dashboard/applications');
   };
 

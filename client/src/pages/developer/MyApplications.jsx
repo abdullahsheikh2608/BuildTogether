@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Search, FileText, Eye, Edit } from 'lucide-react';
+
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
 import Button from '../../components/ui/Button.jsx';
 import StampBadge from '../../components/ui/StampBadge.jsx';
+import BackButton from '../../components/common/BackButton.jsx';
+
 import { getMyApplications } from '../../services/application.service.js';
-import { FileText, Eye, Edit3, Calendar, Clock } from 'lucide-react';
 
 const SEARCH_DEBOUNCE_MS = 500;
 const DEFAULT_LIMIT = 10;
+const EDITABLE_STATUSES = ['pending'];
 
 const SORT_OPTIONS = [
   { value: 'applied_at:DESC', label: 'Latest First' },
@@ -21,14 +25,17 @@ export default function MyApplications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Raw text as typed by the user; debounced into `search` before hitting the API.
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+
   const [status, setStatus] = useState('all');
   const [sortBy, setSortBy] = useState('applied_at');
   const [order, setOrder] = useState('DESC');
   const [page, setPage] = useState(1);
   const [limit] = useState(DEFAULT_LIMIT);
 
+  // Debounce the search input by 500ms, then reset back to page 1.
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
@@ -50,6 +57,7 @@ export default function MyApplications() {
     setPage(1);
   };
 
+  // Refetch from the backend whenever any of the query dependencies change.
   useEffect(() => {
     let cancelled = false;
 
@@ -99,152 +107,122 @@ export default function MyApplications() {
   const goToNextPage = () => setPage((prev) => prev + 1);
 
   return (
-    <div className="w-full space-y-6">
-      <div>
-        <span className="font-mono text-xs font-semibold uppercase tracking-widest text-cyan">
-          Developer
-        </span>
-        <h1 className="mt-1 font-display text-3xl font-bold text-paper">My Applications</h1>
-        <p className="mt-1 text-sm text-paper-dim">Track and manage all your submitted startup applications.</p>
-      </div>
+    <div className="w-full">
+      <BackButton fallbackPath="/dashboard" />
+      <p className="text-sm font-medium text-cyan">Developer</p>
+      <h1 className="mt-1 font-display text-2xl font-semibold text-paper">My Applications</h1>
+      <p className="mt-1 text-sm text-paper-dim">Track all your submitted applications.</p>
 
       {error && (
-        <p className="rounded-lg border border-ink-red/30 bg-ink-red/10 p-3 text-sm text-ink-red">
+        <p className="mt-6 rounded-lg border border-ink-red/20 bg-ink-red/5 px-4 py-3 text-sm text-ink-red">
           {error}
         </p>
       )}
 
-      {/* Search & Filters Bar */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Input
-          id="application-search"
-          placeholder="Search applications..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="relative">
+          <Search
+            size={16}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-paper-faint"
+          />
+          <Input
+            id="application-search"
+            placeholder="Search by title or tagline..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="[&>input]:pl-9"
+          />
+        </div>
 
         <Select id="application-status-filter" value={status} onChange={handleStatusChange}>
-          <option value="all" className="bg-blueprint-900">
-            All Statuses
-          </option>
-          <option value="pending" className="bg-blueprint-900">
-            Pending
-          </option>
-          <option value="accepted" className="bg-blueprint-900">
-            Accepted
-          </option>
-          <option value="rejected" className="bg-blueprint-900">
-            Rejected
-          </option>
+          <option value="all">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="accepted">Accepted</option>
+          <option value="rejected">Rejected</option>
         </Select>
 
-        <Select
-          id="application-sort-filter"
-          value={`${sortBy}:${order}`}
-          onChange={handleSortChange}
-        >
+        <Select id="application-sort-filter" value={`${sortBy}:${order}`} onChange={handleSortChange}>
           {SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value} className="bg-blueprint-900">
+            <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
         </Select>
       </div>
 
-      {/* Applications List */}
-      <div>
+      <div className="mt-8 space-y-4">
         {loading ? (
-          <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading applications...</p>
+          <p className="font-mono text-xs uppercase tracking-widest text-paper-faint">Loading…</p>
         ) : applicationList.length === 0 ? (
           <EmptyState
-            title="No Applications Found"
+            icon={FileText}
+            title="No applications"
             body={
               hasActiveFilters
-                ? 'Try adjusting your search terms or filters.'
-                : "You haven't submitted any startup applications yet."
+                ? 'Try a different search term or clear your filters.'
+                : "You haven't applied to any startup yet."
             }
           />
         ) : (
-          <div className="space-y-4">
-            {applicationList.map((application) => (
-              <div
-                key={application.id}
-                className="blueprint-card p-5 transition-all hover:border-cyan/40"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h2 className="font-display text-xl font-semibold text-paper">
-                      {application.title}
-                    </h2>
-                    {application.tagline && (
-                      <p className="mt-1 text-sm text-paper-dim">{application.tagline}</p>
-                    )}
-                  </div>
+          applicationList.map((application) => {
+            const isEditable = EDITABLE_STATUSES.includes(application.status);
 
+            return (
+              <div key={application.id} className="blueprint-card p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="font-display text-lg font-semibold text-paper">{application.title}</h2>
+                    <p className="mt-1 text-sm text-paper-dim">{application.tagline}</p>
+                  </div>
                   <StampBadge status={application.status} />
                 </div>
 
-                {/* Cover Message Preview */}
-                {application.message && (
-                  <p className="mt-3 rounded-lg border border-blueprint-line bg-blueprint-900/60 p-3 text-sm text-paper-dim line-clamp-2">
-                    {application.message}
+                {application.resume_filename && (
+                  <p className="mt-3 flex items-center gap-1.5 text-sm text-paper-dim">
+                    <FileText size={14} className="text-paper-faint" />
+                    {application.resume_filename}
                   </p>
                 )}
 
-                {/* Resume filename badge & timestamps */}
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-blueprint-line pt-3 text-xs text-paper-faint">
-                  <div className="flex flex-wrap items-center gap-4">
-                    {application.resume_filename && (
-                      <span className="flex items-center gap-1.5 font-mono text-cyan">
-                        <FileText size={14} />
-                        {application.resume_filename}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <Calendar size={13} />
-                      Applied: {new Date(application.applied_at).toLocaleDateString()}
-                    </span>
-                    {application.updated_at && (
-                      <span className="flex items-center gap-1">
-                        <Clock size={13} />
-                        Updated: {new Date(application.updated_at).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
+                <div className="mt-4 flex items-center justify-between border-t border-blueprint-line pt-3">
+                  <span className="text-xs text-paper-faint">
+                    Updated {new Date(application.updated_at || application.applied_at).toLocaleDateString()}
+                  </span>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    <Link to={`/dashboard/applications/${application.id}`}>
-                      <Button variant="outline" className="px-3 py-1 text-xs">
-                        <Eye size={14} className="mr-1" />
-                        View
+                  <div className="flex gap-2">
+                    <Button
+                      as={Link}
+                      to={`/dashboard/applications/${application.id}`}
+                      variant="outline"
+                      className="px-3 py-1.5 text-xs"
+                    >
+                      <Eye size={13} />
+                      View
+                    </Button>
+                    {isEditable && (
+                      <Button
+                        as={Link}
+                        to={`/dashboard/applications/${application.id}/edit`}
+                        className="px-3 py-1.5 text-xs"
+                      >
+                        <Edit size={13} />
+                        Edit
                       </Button>
-                    </Link>
-
-                    {application.status === 'pending' && (
-                      <Link to={`/dashboard/applications/${application.id}/edit`}>
-                        <Button className="px-3 py-1 text-xs">
-                          <Edit3 size={14} className="mr-1" />
-                          Edit
-                        </Button>
-                      </Link>
                     )}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })
         )}
       </div>
 
       {!loading && applicationList.length > 0 && (
-        <div className="flex items-center justify-between pt-2">
+        <div className="mt-8 flex items-center justify-between">
           <Button variant="outline" onClick={goToPreviousPage} disabled={isFirstPage}>
             Previous
           </Button>
-          <span className="font-mono text-xs uppercase tracking-widest text-paper-faint">
-            Page {page}
-          </span>
+          <span className="text-sm text-paper-dim">Page {page}</span>
           <Button variant="outline" onClick={goToNextPage} disabled={isLastPage}>
             Next
           </Button>

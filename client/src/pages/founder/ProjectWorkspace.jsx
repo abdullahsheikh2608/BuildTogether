@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams, useLocation } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import {
     Users,
     ListChecks,
     Search,
 } from "lucide-react";
 
-import BackButton from "../../components/common/BackButton.jsx";
 import WorkspaceHeader from "../../components/project/WorkspaceHeader.jsx";
 import MemberCard from "../../components/project/MemberCard.jsx";
 import TaskCard from "../../components/project/TaskCard.jsx";
@@ -16,6 +15,7 @@ import Button from "../../components/ui/Button.jsx";
 import AssignTaskModal from "../../components/startup/AssignTaskModal.jsx";
 
 import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
+import BackButton from "../../components/common/BackButton.jsx";
 import ChatBox from "../../components/chat/ChatBox.jsx";
 import AiAssistantPanel from "../../components/project/AiAssistantPanel.jsx";
 
@@ -40,7 +40,6 @@ export default function ProjectWorkspace() {
 
     const { startupId } = useParams();
     const [searchParams, setSearchParams] = useSearchParams();
-    const location = useLocation();
 
     const {
         startups,
@@ -68,6 +67,10 @@ export default function ProjectWorkspace() {
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     const [deletingTask, setDeletingTask] = useState(false);
+
+    const [removeTarget, setRemoveTarget] = useState(null);
+
+    const [removingMember, setRemovingMember] = useState(false);
 
     const [selectedTask, setSelectedTask] = useState(null);
 
@@ -218,19 +221,21 @@ export default function ProjectWorkspace() {
 
     };
 
-    const handleRemoveMember = async (member) => {
+    const handleRemoveMember = (member) => {
 
-        const confirmed = window.confirm(
-            `Remove ${member.full_name} from this project?`
-        );
+        setRemoveTarget(member);
 
-        if (!confirmed) return;
+    };
+
+    const handleConfirmRemoveMember = async () => {
 
         try {
 
+            setRemovingMember(true);
+
             await removeMember(
                 startupId,
-                member.id
+                removeTarget.id
             );
 
             await loadMembers(
@@ -242,6 +247,8 @@ export default function ProjectWorkspace() {
                 startupId,
                 debouncedTaskSearch
             );
+
+            setRemoveTarget(null);
 
             showToast({
                 type: "success",
@@ -256,6 +263,10 @@ export default function ProjectWorkspace() {
                     error.response?.data?.message ??
                     "Unable to remove member.",
             });
+
+        } finally {
+
+            setRemovingMember(false);
 
         }
 
@@ -300,8 +311,9 @@ export default function ProjectWorkspace() {
 
     return (
 
-        <div className="mx-auto max-w-7xl space-y-6">
-            <BackButton fallbackPath="/founder/startups" label="Back to Startups" />
+        <div className="mx-auto max-w-7xl space-y-8">
+
+            <BackButton fallbackPath="/founder" />
 
             <WorkspaceHeader
                 startup={startup}
@@ -567,6 +579,17 @@ export default function ProjectWorkspace() {
                 confirming={deletingTask}
                 title="Delete this task?"
                 body={`"${deleteTarget?.title}" will be permanently removed. This can't be undone.`}
+            />
+
+            <ConfirmDialog
+                open={!!removeTarget}
+                onClose={() =>
+                    setRemoveTarget(null)
+                }
+                onConfirm={handleConfirmRemoveMember}
+                confirming={removingMember}
+                title="Remove this member?"
+                body={`"${removeTarget?.full_name}" will be removed from this project. This can't be undone.`}
             />
                     </div>
 

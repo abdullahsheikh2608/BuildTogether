@@ -113,54 +113,6 @@ export const validateLogin = (req, res, next) => {
     next();
 };
 
-export const validateForgotPassword = (req, res, next) => {
-    const { email } = req.body;
-
-    if (!email) {
-        return sendValidationError(res, AUTH_MESSAGES.EMAIL_REQUIRED);
-    }
-
-    if (!validator.isEmail(email)) {
-        return sendValidationError(res, "Please enter a valid email address.");
-    }
-
-    if (!validator.matches(email, /^[a-zA-Z0-9._%+-]+@gmail\.com$/)) {
-        return sendValidationError(res, "Only Gmail addresses are allowed.");
-    }
-
-    next();
-};
-
-export const validateResetPassword = (req, res, next) => {
-    const { email, code, newPassword } = req.body;
-
-    if (!email) {
-        return sendValidationError(res, AUTH_MESSAGES.EMAIL_REQUIRED);
-    }
-
-    if (!code) {
-        return sendValidationError(res, AUTH_MESSAGES.RESET_CODE_REQUIRED);
-    }
-
-    if (!newPassword) {
-        return sendValidationError(res, AUTH_MESSAGES.PASSWORD_REQUIRED);
-    }
-
-    if (!validator.isEmail(email)) {
-        return sendValidationError(res, "Please enter a valid email address.");
-    }
-
-    if (!validator.isLength(code.toString().trim(), { min: 6, max: 6 })) {
-        return sendValidationError(res, AUTH_MESSAGES.INVALID_RESET_CODE_FORMAT);
-    }
-
-    if (!validator.isLength(newPassword, { min: 8 })) {
-        return sendValidationError(res, AUTH_MESSAGES.PASSWORD_MIN_LENGTH);
-    }
-
-    next();
-};
-
 export const validateProfileUpdate = (req, res, next) => {
     const { full_name, username } = req.body;
 

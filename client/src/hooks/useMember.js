@@ -18,8 +18,6 @@ export function useMember() {
         setLoading(true);
         setError("");
 
-        console.log("Startup ID:", startupId);
-
         const data = await getStartupMembers(
         startupId,
         search

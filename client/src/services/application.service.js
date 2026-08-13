@@ -47,3 +47,22 @@ export const getResumeDownloadUrl = (id) => {
 
 export const getApplicationResumeBlob = (id) =>
   api.get(`/applications/${id}/resume`, { responseType: 'blob' }).then((response) => response.data);
+
+export const openApplicationResume = (id) => {
+  const url = getResumeDownloadUrl(id);
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
+
+export const updateApplicationDetails = (id, payload, resumeFile) => {
+  if (resumeFile) {
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, val]) => {
+      if (val !== undefined && val !== null) {
+        formData.append(key, val);
+      }
+    });
+    formData.append('resume', resumeFile);
+    return updateApplication(id, formData);
+  }
+  return updateApplication(id, payload);
+};

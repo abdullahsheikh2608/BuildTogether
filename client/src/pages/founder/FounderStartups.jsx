@@ -5,6 +5,7 @@ import Button from '../../components/ui/Button.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
+import BackButton from '../../components/common/BackButton.jsx';
 import { SkeletonCard } from '../../components/ui/Skeleton.jsx';
 import ConfirmDialog from '../../components/common/ConfirmDialog.jsx';
 import StartupCard from '../../components/startup/StartupCard.jsx';
@@ -143,6 +144,7 @@ export default function FounderStartups() {
 
   return (
     <div className="max-w-6xl">
+      <BackButton fallbackPath="/founder" />
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-cyan">Startups</p>

@@ -153,7 +153,7 @@ export default function FounderProjectTasks() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="w-full space-y-6">
       <BackButton fallbackPath={`/founder/projects/${startupId}`} label="Back to Project Workspace" />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>

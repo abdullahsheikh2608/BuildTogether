@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, ListChecks, ChevronRight, PlusCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Search, ListChecks, ChevronRight, ChevronLeft, PlusCircle } from 'lucide-react';
 
 import Button from '../../components/ui/Button.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
+import BackButton from '../../components/common/BackButton.jsx';
 import TaskCard from '../../components/project/TaskCard.jsx';
 import TaskDetailsPanel from '../../components/project/TaskDetailsPanel.jsx';
 import AssignTaskModal from '../../components/startup/AssignTaskModal.jsx';
@@ -38,7 +40,12 @@ const DEADLINE_OPTIONS = [
   { value: 'no_deadline', label: 'No deadline' },
 ];
 
+const PAGE_SIZE = 6;
+
 export default function FounderTasksPage() {
+  const [searchParams] = useSearchParams();
+  const urlStartupId = searchParams.get('startupId') || searchParams.get('projectId');
+
   const { startups, loadStartups } = useStartup();
   const { tasks, loading: tasksLoading, loadStartupTasks } = useTask();
   const { members, loadMembers } = useMember();
@@ -51,12 +58,18 @@ export default function FounderTasksPage() {
   const [creatingTask, setCreatingTask] = useState(false);
   const [deletingTask, setDeletingTask] = useState(false);
 
-  const [projectFilter, setProjectFilter] = useState('all');
+  // Read straight from the URL on first render instead of always
+  // defaulting to 'all'. Without this, arriving here from Workspace's
+  // "View Tasks" button (which links to /founder/tasks?startupId=X)
+  // was silently ignored — the query param was never read anywhere,
+  // so the page always fell back to showing every project's tasks.
+  const [projectFilter, setProjectFilter] = useState(() => urlStartupId || 'all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [deadlineFilter, setDeadlineFilter] = useState('all');
   const [searchInput, setSearchInput] = useState('');
   const search = useDebounce(searchInput, 400);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -65,6 +78,14 @@ export default function FounderTasksPage() {
       loadStartups();
     }
   }, [loadStartups, startups.length]);
+
+  // Keep the filter in sync if the URL's startupId changes after mount
+  // (e.g. clicking "View Tasks" again for a different project while
+  // already on this page).
+  useEffect(() => {
+    if (!urlStartupId) return;
+    setProjectFilter(urlStartupId);
+  }, [urlStartupId]);
 
   useEffect(() => {
     const loadTasksForStartup = async (startupId) => {
@@ -149,6 +170,17 @@ export default function FounderTasksPage() {
       .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   }, [displayedTasks, statusFilter, priorityFilter, deadlineFilter, search]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [projectFilter, statusFilter, priorityFilter, deadlineFilter, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredTasks.length / PAGE_SIZE));
+
+  const paginatedTasks = useMemo(
+    () => filteredTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filteredTasks, page]
+  );
+
   const selectedStartup = useMemo(
     () => startups.find((startup) => String(startup.id) === String(projectFilter)),
     [startups, projectFilter]
@@ -187,7 +219,8 @@ export default function FounderTasksPage() {
   const isAssignEnabled = projectFilter !== 'all';
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="w-full space-y-6">
+      <BackButton fallbackPath="/founder" />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium text-cyan">Tasks</p>
@@ -288,7 +321,7 @@ export default function FounderTasksPage() {
             ) : filteredTasks.length === 0 ? (
               <EmptyState title="No tasks found" body="Try changing your filters or select a startup." />
             ) : (
-              filteredTasks.map((task) => (
+              paginatedTasks.map((task) => (
                 <TaskCard
                   key={task.id}
                   task={task}
@@ -298,6 +331,33 @@ export default function FounderTasksPage() {
               ))
             )}
           </div>
+
+          {!loading && filteredTasks.length > 0 && totalPages > 1 && (
+            <div className="mt-5 flex flex-col gap-3 border-t border-blueprint-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-paper-faint">
+                Page {page} of {totalPages} · {filteredTasks.length} tasks
+              </p>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft size={16} />
+                  Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  Next
+                  <ChevronRight size={16} />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {selectedTask && (

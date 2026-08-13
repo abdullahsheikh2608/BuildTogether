@@ -22,12 +22,36 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    getMe()
-      .then((freshUser) => setUser(freshUser))
-      .catch(() => {
-        localStorage.removeItem('access_token');
-      })
-      .finally(() => setLoading(false));
+    const restoreSession = (retriesLeft = 1) => {
+      getMe()
+        .then((freshUser) => {
+          setUser(freshUser);
+          setLoading(false);
+        })
+        .catch((err) => {
+          const status = err?.response?.status;
+
+          // Only a genuine "this token is invalid/expired" response should
+          // log the person out. Anything else (a transient 500 from a DB
+          // hiccup, a dropped connection, etc.) shouldn't wipe a perfectly
+          // good saved session — retry once, and if that still fails,
+          // leave the token in place so the next reload can try again.
+          if (status === 401) {
+            localStorage.removeItem('access_token');
+            setLoading(false);
+            return;
+          }
+
+          if (retriesLeft > 0) {
+            setTimeout(() => restoreSession(retriesLeft - 1), 800);
+            return;
+          }
+
+          setLoading(false);
+        });
+    };
+
+    restoreSession();
   }, []);
 
   const persistSession = ({ user: nextUser, token }) => {

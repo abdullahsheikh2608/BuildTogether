@@ -11,6 +11,7 @@ const getInitials = (name = "") =>
 export default function MemberCard({
     member,
     onRemove,
+    projectLabel,
 }) {
     return (
         <div className="blueprint-card animate-draft-in p-4">
@@ -29,9 +30,17 @@ export default function MemberCard({
                             @{member.username}
                         </p>
 
-                        <span className="mt-1.5 inline-block rounded-full bg-blueprint-800 px-2 py-0.5 text-[11px] font-medium capitalize text-paper-dim">
-                            {member.role}
-                        </span>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <span className="inline-block rounded-full bg-blueprint-800 px-2 py-0.5 text-[11px] font-medium capitalize text-paper-dim">
+                                {member.role}
+                            </span>
+
+                            {projectLabel && (
+                                <span className="inline-block rounded-full bg-cyan-dim px-2 py-0.5 text-[11px] font-medium text-cyan">
+                                    {projectLabel}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
 

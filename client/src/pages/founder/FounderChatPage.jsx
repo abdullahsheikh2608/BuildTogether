@@ -4,6 +4,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import Button from '../../components/ui/Button.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
+import BackButton from '../../components/common/BackButton.jsx';
 import { useStartup } from '../../hooks/useStartup.js';
 import ChatBox from '../../components/chat/ChatBox.jsx';
 
@@ -43,7 +44,8 @@ export default function FounderChatPage() {
   const selectedStartup = startups.find((startup) => String(startup.id) === String(selectedStartupId));
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="w-full space-y-6">
+      <BackButton fallbackPath="/founder" />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium text-cyan">Team Chat</p>

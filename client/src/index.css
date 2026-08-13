@@ -6,33 +6,35 @@
   --font-body: "Inter", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
 
-  --color-blueprint-950: #F5F7FA;
+  --color-blueprint-950: #F8FAFC;
   --color-blueprint-900: #FFFFFF;
   --color-blueprint-800: #F1F5F9;
-  --color-blueprint-700: #E5E7EB;
-  --color-blueprint-line: #E5E7EB;
+  --color-blueprint-700: #E2E8F0;
+  --color-blueprint-line: #E2E8F0;
 
-  --color-paper: #111827;
-  --color-paper-dim: #6B7280;
-  --color-paper-faint: #9CA3AF;
+  --color-paper: #0F172A;
+  --color-paper-dim: #64748B;
+  --color-paper-faint: #94A3B8;
 
-  --color-cyan: #2563EB;
+  --color-cyan: #0878C9;
+  --color-cyan-hover: #0669B2;
   --color-cyan-dim: #EFF6FF;
-  --color-indigo: #6366F1;
+  --color-cyan-accent: #06B6D4;
+  --color-indigo: #7C3AED;
   --color-amber: #F59E0B;
   --color-amber-dim: #FEF3C7;
-  --color-ink-green: #22C55E;
+  --color-ink-green: #10B981;
   --color-ink-red: #EF4444;
 
   --color-founder: #F59E0B;
-  --color-developer: #2563EB;
+  --color-developer: #0878C9;
 
-  --color-sidebar: #111827;
-  --color-sidebar-hover: #1F2937;
-  --color-sidebar-active: #2563EB;
-  --color-sidebar-text: #F9FAFB;
-  --color-sidebar-text-dim: #9CA3AF;
-  --color-sidebar-line: #1F2937;
+  --color-sidebar: #213447;
+  --color-sidebar-hover: #29445C;
+  --color-sidebar-active: #0878C9;
+  --color-sidebar-text: #FFFFFF;
+  --color-sidebar-text-dim: #A8B6C6;
+  --color-sidebar-line: #30475A;
 
   --radius-card: 16px;
   --radius-control: 10px;

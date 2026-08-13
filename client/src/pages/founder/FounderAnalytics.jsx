@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getDashboardAnalytics } from '../../services/dashboard.service.js';
 import EmptyState from '../../components/ui/EmptyState.jsx';
+import BackButton from '../../components/common/BackButton.jsx';
 import AnalyticsGrid from '../../components/analytics/AnalyticsGrid.jsx';
 import ApplicationsPieChart from '../../components/analytics/ApplicationsPieChart.jsx';
 import TasksBarChart from '../../components/analytics/TasksBarChart.jsx';
@@ -31,7 +32,8 @@ export default function FounderAnalytics() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="w-full space-y-6">
+      <BackButton fallbackPath="/founder" />
       <div>
         <span className="font-mono text-xs font-semibold uppercase tracking-widest text-amber">
           Founder · Console

@@ -1,8 +1,8 @@
 const COLOR_STYLES = {
-  blue: { bg: '#DBEAFE', fg: '#2563EB' },
-  green: { bg: '#DCFCE7', fg: '#16A34A' },
-  purple: { bg: '#EDE9FE', fg: '#7C3AED' },
-  amber: { bg: '#FEF3C7', fg: '#D97706' },
+  blue: { bg: 'var(--color-cyan-dim)', fg: 'var(--color-cyan)' },
+  green: { bg: '#DCFCE7', fg: 'var(--color-ink-green)' },
+  purple: { bg: 'var(--color-indigo-dim)', fg: 'var(--color-indigo)' },
+  amber: { bg: 'var(--color-amber-dim)', fg: 'var(--color-amber)' },
 };
 
 export default function AnalyticsCard({ label, value, suffix = '', icon: Icon, color = 'blue' }) {

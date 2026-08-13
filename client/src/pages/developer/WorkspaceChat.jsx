@@ -7,13 +7,8 @@ export default function WorkspaceChat() {
   if (!project) return <div />;
 
   return (
-    <div className="space-y-4">
-      <div className="blueprint-card p-6">
-        <h2 className="font-display text-lg font-semibold text-paper">Team Chat</h2>
-        <div className="mt-4">
-          <ChatBox startupId={project.id} />
-        </div>
-      </div>
+    <div className="h-[calc(100vh-14rem)] min-h-[32rem]">
+      <ChatBox startupId={project.id} variant="page" />
     </div>
   );
 }

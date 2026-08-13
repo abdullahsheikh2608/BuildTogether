@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function ExpandableText({
     text,
@@ -21,6 +22,26 @@ export default function ExpandableText({
             element.scrollHeight > element.clientHeight
         );
     }, [text, maxLength]);
+
+    // Lock background scroll while the modal is open
+    useEffect(() => {
+        if (!showModal) return;
+        const original = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = original;
+        };
+    }, [showModal]);
+
+    // Close on Escape key
+    useEffect(() => {
+        if (!showModal) return;
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") setShowModal(false);
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [showModal]);
 
     if (!text) return null;
 
@@ -49,9 +70,9 @@ export default function ExpandableText({
                 )}
             </div>
 
-            {showModal && (
+            {showModal && createPortal(
                 <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
                     onClick={(e) => {
                         e.stopPropagation();
                         setShowModal(false);
@@ -92,7 +113,8 @@ export default function ExpandableText({
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

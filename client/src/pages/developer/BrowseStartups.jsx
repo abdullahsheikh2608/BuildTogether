@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import BackButton from '../../components/common/BackButton.jsx';
 import DeveloperStartupCard from '../../components/startup/DeveloperStartupCard.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import Input from '../../components/ui/Input.jsx';
@@ -75,6 +76,7 @@ export default function BrowseStartups() {
   return (
     <div className="w-full">
       <main className="w-full">
+        <BackButton fallbackPath="/dashboard" />
         <span className="font-mono text-xs font-semibold uppercase tracking-widest text-cyan">
           Developer
         </span>
