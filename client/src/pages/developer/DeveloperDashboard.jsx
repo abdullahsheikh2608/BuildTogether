@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Rocket, Briefcase, ListChecks, CheckCircle2, Clock, ArrowRight, UserPlus, ClipboardList } from "lucide-react";
 
 import UpcomingDeadlines from "../../components/project/Upcomingdeadlines.jsx";
-import AnalyticsCard from "../../components/analytics/Analyticscard.jsx";
+import AnalyticsCard from "../../components/analytics/AnalyticsCard.jsx";
 import StampBadge from "../../components/ui/StampBadge.jsx";
 import Button from "../../components/ui/Button.jsx";
 import EmptyState from "../../components/ui/EmptyState.jsx";

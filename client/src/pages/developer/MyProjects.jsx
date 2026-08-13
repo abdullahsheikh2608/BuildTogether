@@ -11,7 +11,7 @@ import {
 
 import BackButton from "../../components/common/BackButton.jsx";
 import DeveloperProjectCard from "../../components/project/DeveloperProjectCard.jsx";
-import AnalyticsCard from "../../components/analytics/Analyticscard.jsx";
+import AnalyticsCard from "../../components/analytics/AnalyticsCard.jsx";
 import Input from "../../components/ui/Input.jsx";
 import Select from "../../components/ui/Select.jsx";
 import Button from "../../components/ui/Button.jsx";

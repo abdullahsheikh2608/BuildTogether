@@ -22,7 +22,7 @@ import Button from '../../components/ui/Button.jsx';
 import StampBadge from '../../components/ui/StampBadge.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import { SkeletonStat } from '../../components/ui/Skeleton.jsx';
-import AnalyticsCard from '../../components/analytics/Analyticscard.jsx';
+import AnalyticsCard from '../../components/analytics/AnalyticsCard.jsx';
 
 import { useAuth } from '../../hooks/useAuth.js';
 import { useStartup } from '../../hooks/useStartup.js';
