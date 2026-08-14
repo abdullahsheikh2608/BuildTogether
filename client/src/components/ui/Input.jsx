@@ -1,4 +1,9 @@
-export default function Input({ label, id, hint, error, icon: Icon, className = '', ...props }) {
+import { forwardRef } from 'react';
+
+const Input = forwardRef(function Input(
+  { label, id, hint, error, icon: Icon, className = '', ...props },
+  ref
+) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (
@@ -14,6 +19,7 @@ export default function Input({ label, id, hint, error, icon: Icon, className = 
           />
         )}
         <input
+          ref={ref}
           id={id}
           className={`w-full rounded-lg border bg-white py-2.5 text-sm text-paper
             placeholder:text-paper-faint outline-none transition-all duration-200
@@ -28,4 +34,6 @@ export default function Input({ label, id, hint, error, icon: Icon, className = 
       {error && <span className="text-xs text-ink-red">{error}</span>}
     </div>
   );
-}
+});
+
+export default Input;
