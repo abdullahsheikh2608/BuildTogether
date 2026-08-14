@@ -44,10 +44,13 @@ const getCompletion = async (prompt) => {
     } catch (error) {
         // Network-level failure talking to Groq — don't leak provider
         // internals to the client.
+        console.error("Groq fetch failed:", error);
         throw new Error(AI_MESSAGES.PROVIDER_ERROR);
     }
 
     if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("Groq API error:", response.status, errorBody);
         throw new Error(AI_MESSAGES.PROVIDER_ERROR);
     }
 
